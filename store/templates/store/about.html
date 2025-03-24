@@ -1,0 +1,56 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">About Us</h1>
+                <p class="lead fw-normal text-white-50 mb-0">Welcome to OneStopShop WebPage</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row">
+            <center>
+                <div class="col-8">
+                    <p align="justify">
+                        <br><br>
+                        Welcome to <strong>OneStopShop</strong>, your ultimate destination for premium-quality products across a wide range of categories. 
+                        Whether you're looking for the latest fashion trends, cutting-edge electronics, or everyday essentials, we've got you covered—all in one place!
+                        <br><br>
+                        At OneStopShop, we believe shopping should be seamless, affordable, and enjoyable. That’s why we carefully curate our products 
+                        to ensure top-notch quality, competitive pricing, and an effortless shopping experience. Our mission is simple: to bring you the best products with 
+                        convenience at your fingertips.
+                        <br><br>
+                        <strong class="text-decoration-underline">Why choose OneStopShop?</strong>
+                        <br>
+                        ✅ A diverse selection of high-quality products <br>
+                        ✅ Hassle-free and secure shopping experience <br>
+                        ✅ Customer-centric service with easy returns <br>
+                        ✅ Fast and reliable delivery <br>
+                        <br>
+                        We are committed to providing you with a shopping experience that’s smooth, secure, and satisfying. 
+                        Explore OneStopShop today—where quality meets convenience!
+                        <br><br>
+                        <b class="text-decoration-underline">Our Story:</b>
+                        <br>
+                        OneStopShop was founded with a simple idea: to make quality products easily accessible to everyone. 
+                        We strive to bring the best shopping experience by offering carefully selected items at competitive prices, 
+                        all while ensuring customer satisfaction.
+                    </p>
+                    <br>
+                    <p align="center">
+                        <b>Have questions? Need assistance?</b> <br>
+                        📩 Contact us at <a href="mailto:support@onestopshop.com" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover">support@onestopshop.com</a>
+                    </p>
+                    <br>
+                    <p align="center">
+                        <a href="{% url 'home' %}" class="btn btn-primary">Start Shopping Now</a>
+                    </p>  
+                </div>
+            </center>
+        </div>
+    </div>
+{% endblock %}

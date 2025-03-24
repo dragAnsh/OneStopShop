@@ -1,0 +1,85 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Update</h1>
+                <p class="lead fw-normal text-white-50 mb-0">Update User Info</p>
+            </div>
+        </div>
+    </header>
+
+    <br><br>
+
+    <div class="col-md-6 offset-md-3">
+        <strong>Billing Information</strong>
+        <br><br>
+        <form action="{% url 'update_info' %}" method="post">
+            {% csrf_token %}
+
+            {{form.as_p}}
+            <br>
+            <strong>Shipping Information</strong>
+            <br><br>
+
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                <label class="form-check-label" for="flexSwitchCheckDefault">Same As Billing Information</label>
+            </div>
+
+            <br>
+
+            {{shipping_form.as_p}}
+            <br><br>
+            <button type="submit" class="btn btn-secondary">Update Profile</button>
+            <br><br>
+        </form>
+        <br> <br>
+    </div>
+
+    <script>
+        document.getElementById("flexSwitchCheckDefault").addEventListener("change", function() {
+            let fields = ["phone", "full_name", "email", "address1", "address2", "city", "state", "zipcode", "country"];
+            
+            fields.forEach(field => {
+                let billingField = document.getElementById(`id_${field}`);
+                let shippingField = document.getElementById(`id_shipping_${field}`);
+
+                if (this.checked) {
+                    shippingField.value = billingField.value;
+                } else {
+                    shippingField.value = "";
+                }
+            });
+        });
+    </script>
+
+    <!-- <script>
+        document.getElementById("flexSwitchCheckDefault").addEventListener("change", function() {
+            if (this.checked) {
+                // Get all billing fields
+                document.getElementById("id_shipping_phone").value = document.getElementById("id_phone").value;
+                document.getElementById("id_shipping_address1").value = document.getElementById("id_address1").value;
+                document.getElementById("id_shipping_address2").value = document.getElementById("id_address2").value;
+                document.getElementById("id_shipping_city").value = document.getElementById("id_city").value;
+                document.getElementById("id_shipping_state").value = document.getElementById("id_state").value;
+                document.getElementById("id_shipping_zipcode").value = document.getElementById("id_zipcode").value;
+                document.getElementById("id_shipping_country").value = document.getElementById("id_country").value;
+            }
+            else {
+                // Clear shipping fields if unchecked
+                document.getElementById("id_shipping_phone").value = "";
+                document.getElementById("id_shipping_address1").value = "";
+                document.getElementById("id_shipping_address2").value = "";
+                document.getElementById("id_shipping_city").value = "";
+                document.getElementById("id_shipping_state").value = "";
+                document.getElementById("id_shipping_zipcode").value = "";
+                document.getElementById("id_shipping_country").value = "";
+            }
+        });
+    </script> -->
+
+{% endblock %}
+

@@ -1,0 +1,19 @@
+# Ignore Environment variables & secrets
+.env
+
+# Ignore media uploads
+media/
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore Virtual Environment
+ecom_venv/
+venv/
+
+# Ignore logs & system files
+*.log
+*.pid
+*.sqlite3

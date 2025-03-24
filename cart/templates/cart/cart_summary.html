@@ -1,0 +1,196 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Shopping Cart</h1>
+                <p class="lead fw-normal text-white-50 mb-0">View Items In Your Cart</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- WE ARE NOW RELOADING THE PAGE SO SHOWING 'messages' INSTEAD OF 'ALERTS' -->
+    <!-- Alert for update -->
+    <!-- <div id="update-alert" class="alert alert-success text-center" style="display: none; position: fixed; top: 10px; right: 10px; z-index: 1000;">
+        Quantity updated successfully!
+    </div> -->
+
+    <!-- Alert for delete -->
+    <!-- <div id="delete-alert" class="alert alert-success text-center" style="display: none; position: fixed; top: 10px; right: 10px; z-index: 1000;">
+        Product Deleted successfully!
+    </div> -->
+    
+
+    <br><br>
+
+    {% if products|length == 0 %}
+
+        <div class="container">
+            <h3>Your Cart is Empty, Add Items to your cart.</h3>
+            <br><br>
+            <a href="{% url 'home' %}" class="btn btn-secondary">Add Items</a>
+        </div>
+
+    {% else %}
+        <div class="container my-5">
+            
+            <div align="center">
+                <h3>Cart Total: ${{cart_total}} </h3>
+                <br>
+                <a href="{% url 'checkout' %}" class="btn btn-success">Checkout</a>
+            </div>
+
+            <br><br>
+            {% for product in products %}
+
+                <div class="card mb-3 shadow-sm border-0 rounded-3" id="cart-item-{{product.id}}">
+                    <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="{{product.image.url}}" class="img-fluid rounded-start" alt="Image of Product" loading="lazy">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <center>
+                                <h5 class="card-title">{{product.name}}</h5>
+                                <p class="card-text text-muted">{{product.description}}</p>
+                                {% if product.on_sale %}
+                                    <!-- Sale badge-->
+                                    <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">Sale</div>
+                                    <div class="d-flex justify-content-center small text-warning mb-2">
+                                        <i class="bi bi-star-fill me-1"></i>
+                                        <i class="bi bi-star-fill me-1"></i>
+                                        <span class="text-dark fw-bold me-1">SALE!!!</span>
+                                        <i class="bi bi-star-fill me-1"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </div>
+        
+                                    <span class="text-muted text-decoration-line-through">${{product.price}}</span>
+                                    <h4 class="text-success">${{product.sale_price}}</h4>
+                                {% else %}
+                                    <h4 class="text-success">${{product.price}}</h4>
+                                {% endif %}
+                                <br>
+        
+                                <div class="row justify-content-center">
+        
+                                    <div class="col-md-2"> Quantity:</div>
+        
+                                        <div class="col-md-2">
+                                            <select class="form-select" id="select{{product.id}}">
+                                                {% for id, qty in quantities.items %} <!-- try to get the quantity of current product -->
+                                                    {% if id == product.id|slugify %} <!-- slugify will convert the int product id to string because the id from quantities dict is string -->
+                                                        <option selected> {{qty}} </option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">5</option>
+                                            </select>
+                                        </div>
+        
+                                </div>
+        
+                                <br><br>
+                                <a href="{% url 'home' %}" class="btn btn-secondary">Back To Home</a>
+                                <br><br>
+                                
+        
+                                <button type="button" class="btn btn-secondary update-cart" data-index="{{product.id}}">Update</button> <!-- 'data-index' is setting a unique id for each button -->
+                                <button type="button" class="btn btn-danger delete-cart" data-index="{{product.id}}">Remove</button>
+                                <br>
+                            </center>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <br>
+            {% endfor %}
+
+            <div align="right">
+                <h3>Cart Total: ${{cart_total}} </h3>
+                <a href="{% url 'checkout' %}" class="btn btn-success">Checkout</a>
+            </div>
+
+        </div>
+
+    {% endif %}
+
+    <br>
+    
+    <script>
+
+        // Update Product
+        // check if button pressed
+        $(document).on('click', '.update-cart', function(e) { // '.' to reference classes '#' for ids
+            e.preventDefault();
+
+            // grab the product id
+            var productid = $(this).data('index'); // (this) selects the button that was clicked and not the first one in DOM that matched the class 'update-cart'
+
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cart_update' %}",
+                data: {
+                    product_id: productid,
+                    product_quantity: $('#select' + productid + ' option:selected').text(), // .text() gives you the text inside this button (that is what is shown on frontend), .val() gives you the value corresponding to that text(which is defined inside the select tag)
+                    csrfmiddlewaretoken: '{{csrf_token}}',
+                    action: 'post'
+                },
+
+                success: function(json) {
+                    location.reload();
+                    
+                    // instead of reloading page like John did, it's better to do it dynamically and maybe show a popup saying 'Updated ...'. but if there are too many moving parts then its just better to reload the page.
+                    // $('#update-alert').fadeIn().delay(2000).fadeOut();
+                    // $('#select' + productid).val(json['Updated Quantity']);
+                },
+
+                error: function(xhr, errmsg, err) {
+
+                }
+            });
+        })
+
+
+        // Delete Product from Cart
+        $(document).on('click', '.delete-cart', function(e) { // '.' to reference classes '#' for ids
+            e.preventDefault();
+
+            // grab the product id
+            var productid = $(this).data('index'); // (this) selects the button that was clicked and not the first one in DOM that matched the class 'update-cart'
+
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cart_delete' %}",
+                data: {
+                    product_id: productid,
+                    csrfmiddlewaretoken: '{{csrf_token}}',
+                    action: 'post'
+                },
+
+                success: function(json) {
+                    // Show success alert
+                    // $('#delete-alert').fadeIn().delay(2000).fadeOut();
+                    
+                    // Update UI after removal
+                    // document.getElementById('cart_quantity').textContent = json['Cart Quantity'];
+                    // $('#cart-item-' + productid).remove(); // Remove the item's row
+
+                    // or we could just do reload. thus a new call to cart_summary view will be made and thus cart-summary.html page will receive the new items in cart. the removed item will no longer be shown thus. Also the session got updated so cart quantity will update automatically too. But this won't be as smooth as doing JS removal that doesn't require page reload. This works perfectly even if everything is deleted and cart gets empty
+                    location.reload();
+                },
+
+                error: function(xhr, errmsg, err) {
+
+                }
+            });
+        })
+    </script>
+
+{% endblock %}

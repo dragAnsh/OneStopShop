@@ -1,0 +1,136 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Unshipped Items</h1>
+            </div>
+        </div>
+    </header>
+    <br><br>
+    <div class="container">
+        <div class="row">
+            <center>
+                <div class="col-12">
+
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Serial No.</th>
+                                <th scope="col">Order Number</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Customer Email</th>
+                                <th scope="col">Date Ordered</th>
+                                <th scope="col">Mark Shipped</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            {% for order in orders %}
+                                <tr><!--  id="order-row-{{order.id}}" -->
+                                    <td>{{ orders.start_index|add:forloop.counter0 }}</td>
+                                    <td><a href="{% url 'orders' order.id %}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover">{{order.id}}</a></td>
+                                    <td>${{order.amount_paid}}</td>
+                                    <td>{{order.email}}</td>
+                                    <td>{{order.date_ordered}}</td>
+                                    <td>
+                                        <!-- as we are updating data in the DB we should use Form instead of '<a>'' tag because that passes data in GET request and doesn't account for CSRF issues -->
+                                        <form action="{% url 'mark_shipped' order.id %}" method="POST">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success">Mark Shipped</button>
+                                        </form>
+
+                                        <!-- <div class="form-check form-switch">
+                                            <input class="form-check-input shipped-toggle" type="checkbox" role="switch" id="shipped_status_{{order.id}}" data-order-id="{{ order.id }}">
+                                        </div> -->
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination Links -->
+                    <nav aria-label="Order pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if orders.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.previous_page_number }}">Previous</a>
+                                </li>
+                            {% endif %}
+                    
+                            <li class="page-item disabled">
+                                <span class="page-link">Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+                            </li>
+                    
+                            {% if orders.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.next_page_number }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ orders.paginator.num_pages }}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    
+                </div>
+            </center>
+        </div>
+    </div>
+
+    <!-- <script>
+        $(document).ready(function() {
+            $(".shipped-toggle").change(function() {
+                let orderId = $(this).data("order-id"); // Get the order ID
+
+                $.ajax({
+                    url: "{% url 'mark_shipped' 0 %}".replace("0", orderId),
+                    type: "POST",
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}"
+                    },
+                    success: function(response) {
+                        $(`#order-row-${orderId}`).remove();
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error:", error);
+                    }
+                });
+            });
+        });
+    </script> -->
+
+
+
+{% endblock %}
+
+
+
+<!-- When you request paginator.get_page(2), Django returns a Page object, not just a list of orders.
+
+This Page object has:
+
+.object_list → The actual queryset slice (orders[10:20]).
+
+.has_previous → True if there is a previous page.
+
+.previous_page_number() → The number of the previous page.
+
+.has_next → True if there is a next page.
+
+.next_page_number() → The number of the next page.
+
+.number → The current page number.
+
+.paginator → A reference to the original Paginator object. -->
+
+
+
+<!-- Django’s Page object is iterable, meaning you can loop over it just like a list. Internally, Django defines the __iter__() method in the Page class, which simply returns an iterator for .object_list.
+
+Django automatically fetches .object_list behind the scenes. That’s why you don’t need to explicitly write .object_list. -->
+

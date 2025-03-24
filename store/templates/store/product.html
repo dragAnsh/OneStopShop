@@ -1,0 +1,102 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+    <br><br>
+    <div class="container my-5">
+        <div class="card mb-3 shadow-sm border-0 rounded-3">
+            <div class="row g-0">
+            <div class="col-md-4">
+                <img src="{{product.image.url}}" class="img-fluid rounded-start" alt="Image of Product" loading="lazy">
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <center>
+                        <h5 class="card-title">{{product.name}}</h5>
+                        <p class="card-text text-muted">{{product.description}}</p>
+                        {% if product.on_sale %}
+                            <!-- Sale badge-->
+                            <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">Sale</div>
+                            <div class="d-flex justify-content-center small text-warning mb-2">
+                                <i class="bi bi-star-fill me-1"></i>
+                                <i class="bi bi-star-fill me-1"></i>
+                                <span class="text-dark fw-bold me-1">SALE!!!</span>
+                                <i class="bi bi-star-fill me-1"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+
+                            <span class="text-muted text-decoration-line-through">${{product.price}}</span>
+                            <!-- <strike class = "text-muted">${{product.price}}</strike> -->
+                            <h4 class="text-success">${{product.sale_price}}</h4>
+                        {% else %}
+                            <h4 class="text-success">${{product.price}}</h4>
+                        {% endif %}
+                        <br><br>
+
+                        <div class="row justify-content-center">
+
+                            <div class="col-md-2"> Quantity:</div>
+
+                                <div class="col-md-2">
+                                    <select class="form-select" id="quantity">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                    </select>
+                                </div>
+
+                        </div>
+
+                        <br><br>
+                        <a href="{% url 'home' %}" class="btn btn-secondary">Back To Home</a>
+                        <br><br>
+                        
+
+                        <div class="container"><button type="buton" value="{{product.id}}" class="btn btn-secondary" id="add-to-cart">Add to Cart</button></div>
+                    </center>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // check if button pressed
+        $(document).on('click', '#add-to-cart', function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'cart_add' %}',
+                data: {
+                    product_id: $('#add-to-cart').val(),
+                    product_quantity: $('#quantity option:selected').text(),
+                    csrfmiddlewaretoken: '{{csrf_token}}',
+                    action: 'post'
+                },
+
+                success: function(json) {
+                    // console.log(json)
+                    // we want to update the id of the span in navbar the one with quantity
+                    // document.getElementById('cart_quantity').innerHTML = json['Cart Quantity']
+                    document.getElementById('cart_quantity').textContent = json['Cart Quantity']
+                    location.reload();
+                    
+                    // Show the alert
+                    // let alertBox = document.getElementById('cart-alert');
+                    // alertBox.style.display = 'block';
+
+                    // // Hide the alert after 2 seconds
+                    // setTimeout(function() {
+                    //     alertBox.style.display = 'none';
+                    // }, 2000);
+                },
+
+                error: function(xhr, errmsg, err) {
+
+                }
+            });
+        })
+    </script>
+{% endblock %}
