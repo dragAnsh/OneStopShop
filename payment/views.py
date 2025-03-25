@@ -153,8 +153,11 @@ def user_orders_list(request, filter):
             user_orders = user_orders.filter(Q(orderitem__product__name__icontains=search_text)
                                              | Q(orderitem__product__category__name__icontains=search_text)
                                              | Q(orderitem__product__description__icontains=search_text)).distinct()
-
-        return render(request, 'payment/user_orders_list.html', {'user_orders': user_orders, 'filter': filter})
+            
+        user_orders = user_orders.order_by("-date_ordered")
+        
+        has_orders = True if user_orders.exists() else False
+        return render(request, 'payment/user_orders_list.html', {'user_orders': user_orders, 'filter': filter, 'has_orders': has_orders})
     else:
         messages.error(request, "ACCESS DENIED!")
         return redirect('home')
