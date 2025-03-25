@@ -9,6 +9,7 @@ from cart.cart import Cart
 from payment.models import ShippingAddress
 # from cart.models import UserCart
 import json
+from django.db.models import Exists, OuterRef
 
 
 def search(request):
@@ -138,7 +139,8 @@ def update_user(request):
 
 
 def category_summary(request):
-    categories = Category.objects.all()
+    # add 'has_products' field to each entry in the queryset. Thus only pass categories that has atleast one product in them
+    categories = Category.objects.annotate(has_products=Exists(Product.objects.filter(category=OuterRef('pk')))).filter(has_products=True)
     return render(request, 'store/category_summary.html', {'categories': categories})
 
 
