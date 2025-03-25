@@ -1,0 +1,68 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+    <br><br>
+    <style>
+        .product-img {
+            max-width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .sale-badge {
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+        .card-body-centered {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+        }
+    </style>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8">
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="row g-0 align-items-center">
+                        <!-- Product Image -->
+                        <div class="col-md-4 position-relative">
+                            <img src="{{ item.product.image.url }}" class="product-img img-fluid rounded-start" alt="{{ item.product }}" loading="lazy">
+                            <!-- Sale Badge -->
+                            {% if item.product.on_sale %}
+                                <div class="badge bg-dark text-white position-absolute sale-badge">Sale</div>
+                            {% endif %}
+                        </div>
+                        <!-- Product Details -->
+                        <div class="col-md-8">
+                            <div class="card-body card-body-centered">
+                                <!-- Product Name -->
+                                <h4 class="card-title mb-2">{{ item.product }}</h4>
+                                <!-- Product Description -->
+                                <p class="card-text text-muted mb-3">{{ item.product.description }}</p>
+                                <!-- Sale Stars and Pricing -->
+                                {% if item.product.on_sale %}
+                                <div class="d-flex align-items-center small text-warning mb-2">
+                                    <i class="bi bi-star-fill me-1"></i>
+                                    <i class="bi bi-star-fill me-1"></i>
+                                    <span class="text-dark fw-bold me-1">SALE!!!</span>
+                                    <i class="bi bi-star-fill me-1"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                                <span class="text-muted text-decoration-line-through me-2">${{ item.product.price }}</span>
+                                {% endif %}
+                                <!-- Final Price -->
+                                <h5 class="text-success mb-3">${{ item.price }}</h5>
+                                <!-- Action Button (Optional) -->
+                                <a href="{% url 'user_order_detail' item.order.id %}" class="btn btn-outline-secondary btn-sm">Back to Order</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

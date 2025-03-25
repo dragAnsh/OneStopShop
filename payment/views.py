@@ -7,7 +7,168 @@ from .forms import ShippingForm, PaymentForm
 from .models import ShippingAddress, Order, OrderItem
 from django.core.paginator import Paginator
 from django.utils.timezone import now
+from django.http import FileResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from .models import Order, OrderItem
+from reportlab.lib import colors
+from reportlab.platypus import Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from django.db.models import Q
 
+
+def generate_invoice(request, order_id):
+    if not request.user.is_authenticated:
+        messages.error(request, "ACCESS DENIED!")
+        return redirect('home')
+
+    order = Order.objects.get(id=order_id, user=request.user)
+    order_items = OrderItem.objects.filter(order=order)
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    y_position = height - 40  # Start position for writing text
+
+    # Company Name
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, y_position, "OneStopShop Store")
+    y_position -= 30
+
+    # Invoice Title
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(230, y_position, "Invoice")
+    p.line(50, y_position - 5, 550, y_position - 5)  # Horizontal Line
+    y_position -= 30
+
+    # Customer & Order Details
+    p.setFont("Helvetica", 12)
+    p.drawString(50, y_position, f"Full Name: {order.full_name}")
+    y_position -= 20
+    p.drawString(50, y_position, f"Contact: {order.user.profile.phone}")
+    y_position -= 20
+    p.drawString(50, y_position, f"Order ID: {order.id}")
+    y_position -= 20
+    p.drawString(50, y_position, f"Order Date: {order.date_ordered.strftime('%B %d, %Y')}")
+    y_position -= 20
+    p.drawString(50, y_position, f"Payment Method: PayPal")
+    y_position -= 20
+    p.drawString(50, y_position, f"Total Amount: ${order.amount_paid}")
+    y_position -= 30
+
+    # Shipping Address
+    styles = getSampleStyleSheet()
+    shipping_text = Paragraph(f"<b>Shipping Address:</b><br/>{order.shipping_address.replace('\n', '<br/>')}", styles["Normal"])
+    shipping_text.wrapOn(p, 400, 200)
+    shipping_text.drawOn(p, 50, y_position - 80)
+    y_position -= 120
+
+    # Table Header & Data
+    data = [["Product", "Qty", "Unit Price", "Total Price"]]
+    for item in order_items:
+        data.append([item.product.name, str(item.quantity), f"${item.price}", f"${item.total_price}"])
+
+    # Table Styling
+    table = Table(data, colWidths=[200, 70, 100, 100])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 10),
+        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    # Calculate dynamic table height
+    table_height = len(data) * 20
+    if y_position - table_height < 100:  # Prevent table overflow
+        p.showPage()  # Create a new page
+        y_position = height - 40  # Reset position
+
+    table.wrapOn(p, width, height)
+    table.drawOn(p, 50, y_position - table_height)
+
+    # Net Total
+    net_total_y = y_position - table_height - 30
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(400, net_total_y, "Net Total:")
+    p.drawString(470, net_total_y, f"${order.amount_paid}")
+
+    # Footer
+    p.setFont("Helvetica", 10)
+    p.drawString(50, 30, "Thank you for shopping with us!")
+    p.drawString(50, 15, "For any queries, contact support@onestopcode.com")
+
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f"invoice_{order.id}.pdf")
+
+
+def repeat_order(request, order_id):
+    if request.user.is_authenticated:
+        cart = Cart(request)
+        # Grab OrderItems from the Order
+        order_items = OrderItem.objects.filter(order=order_id)
+
+        # Append Products to Cart
+        for item in order_items:
+            cart.add(item.product, item.quantity)
+
+        # Review Your Cart and then Checkout
+        messages.success(request, "Items added to your cart! Review before checkout.")
+        return redirect('cart_summary')
+
+    else:
+        messages.error(request, "ACCESS DENIED!")
+        return redirect('home')
+
+
+def user_order_item(request, pk):
+    if request.user.is_authenticated:
+        item = get_object_or_404(OrderItem, id=pk)
+        return render(request, 'payment/user_order_item.html', {'item': item})
+
+    else:
+        messages.error(request, "ACCESS DENIED!")
+        return redirect('home')
+
+
+def user_orders_list(request, filter):
+    if request.user.is_authenticated:
+
+        search_text = request.GET.get('search_text')
+        # Query the Order Model
+        user_orders = Order.objects.filter(user=request.user)
+        
+        if filter == "shipped":
+            user_orders = user_orders.filter(shipped=True)
+        elif filter == "unshipped":
+            user_orders = user_orders.filter(shipped=False)
+
+        if search_text:
+            search_text = search_text.strip()
+            user_orders = user_orders.filter(Q(orderitem__product__name__icontains=search_text)
+                                             | Q(orderitem__product__category__name__icontains=search_text)
+                                             | Q(orderitem__product__description__icontains=search_text)).distinct()
+
+        return render(request, 'payment/user_orders_list.html', {'user_orders': user_orders, 'filter': filter})
+    else:
+        messages.error(request, "ACCESS DENIED!")
+        return redirect('home')
+    
+
+def user_order_detail(request, order_id):
+    if request.user.is_authenticated:
+        user_order = get_object_or_404(Order, id=order_id)
+        user_order_items = OrderItem.objects.filter(order=user_order)
+        return render(request, 'payment/user_order_detail.html', {'user_order': user_order, 'user_order_items': user_order_items})
+    else:
+        messages.error(request, "ACCESS DENIED!")
+        return redirect('home')
+    
 
 def mark_shipped(request, order_id):
     if request.user.is_authenticated and request.user.is_superuser and request.method=='POST':

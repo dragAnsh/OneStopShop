@@ -13,4 +13,9 @@ urlpatterns = [
     path('order_item/<int:pk>/', views.order_item, name = 'order_item'),
     path('mark_shipped/<int:order_id>/', views.mark_shipped, name = 'mark_shipped'),
     path('mark_unshipped/<int:order_id>/', views.mark_unshipped, name = 'mark_unshipped'),
+    path('user_orders/<int:order_id>/', views.user_order_detail, name = 'user_order_detail'),
+    path('user_orders/<str:filter>/', views.user_orders_list, name = 'user_orders_list'),
+    path('user_order_item/<int:pk>/', views.user_order_item, name = 'user_order_item'),
+    path('repeat_order/<int:order_id>/', views.repeat_order, name = 'repeat_order'),
+    path('generate_invoice/<int:order_id>/', views.generate_invoice, name = 'generate_invoice'),
 ]
