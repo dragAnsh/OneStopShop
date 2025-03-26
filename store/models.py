@@ -3,6 +3,7 @@ import datetime
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.utils.timezone import now
+from cloudinary.models import CloudinaryField
 
 
 # Create Customer Profile: Extend User Model and Associate it with Django User Authentication Model
@@ -66,7 +67,8 @@ class Product(models.Model):
     price = models.DecimalField(default=0, decimal_places=2, max_digits=6)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, default=1)
     description = models.CharField(max_length=200, default='', blank=True, null=True)
-    image = models.ImageField(upload_to='uploads/product/') # media/uploads/product
+    # image = models.ImageField(upload_to='uploads/product/') # media/uploads/product
+    image = CloudinaryField('image')
     on_sale = models.BooleanField(default=False)
     sale_price = models.DecimalField(default=0, decimal_places=2, max_digits=6)
 

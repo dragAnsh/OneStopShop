@@ -8,4 +8,8 @@ urlpatterns = [
     path('', include('store.urls')),
     path('cart/', include('cart.urls')),
     path('payment/', include('payment.urls')),
-] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
+]
+
+# # Serve Media Files Locally in DEBUG Mode OR We can remove this completely and let Cloudinary serve files for us
+# if settings.DEBUG:
+#     urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

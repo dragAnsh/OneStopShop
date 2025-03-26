@@ -17,3 +17,6 @@ venv/
 *.log
 *.pid
 *.sqlite3
+
+# Ignore static files
+productionfiles/
