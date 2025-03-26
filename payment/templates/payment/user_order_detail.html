@@ -25,11 +25,15 @@
                     <ul class="list-group list-group-flush">
                         {% for order_item in user_order_items %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>
-                                    <a href="{% url 'user_order_item' order_item.id %}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover">
-                                        <h6>{{ order_item.product }}</h6>
-                                    </a>
-                                </span>
+                                
+                                <div class="d-flex align-items-center">  
+                                    <img src="{{ order_item.product.image.url }}" alt="{{ order_item.product.name }}" class="rounded me-2" style="max-width: 50px; max-height: 50px;">
+                                    <span>
+                                        <a href="{% url 'user_order_item' order_item.id %}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover">
+                                            <h6>{{ order_item.product }}</h6>
+                                        </a>
+                                    </span>
+                                </div>
                                 
                                 <span>
                                     <small>
