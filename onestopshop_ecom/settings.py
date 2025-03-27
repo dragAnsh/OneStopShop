@@ -137,7 +137,8 @@ STATIC_ROOT = BASE_DIR / 'productionfiles'
 # STATIC_URL = 'static/'
 
 # Change STATIC_URL to serve Files from Cloudinary
-STATIC_URL = 'https://res.cloudinary.com/YOUR_CLOUD_NAME/static/'
+cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME')
+STATIC_URL = f'https://res.cloudinary.com/{cloud_name}/static/'
 
 STATICFILES_DIRS = ['static/']
 
