@@ -134,7 +134,11 @@ USE_TZ = True
 
 # specifies a folder where you want to collect your static files. Make sure to run "python3 manage.py collectstatic"
 STATIC_ROOT = BASE_DIR / 'productionfiles'
-STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
+
+# Change STATIC_URL to serve Files from Cloudinary
+STATIC_URL = 'https://res.cloudinary.com/YOUR_CLOUD_NAME/static/'
+
 STATICFILES_DIRS = ['static/']
 
 # Apply compression and caching of static files for better performance. Controls where static files are stored and served from.
