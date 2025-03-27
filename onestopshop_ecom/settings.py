@@ -15,20 +15,11 @@ cloudinary.config(
 # Media storage settings: Controls where media files are stored 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-
-
 # load our enviornmental variable
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get("CLOUDINARY_CLOUD_NAME"),  
-    'API_KEY': os.environ.get("CLOUDINARY_API_KEY"),  
-    'API_SECRET': os.environ.get("CLOUDINARY_API_SECRET"),
-    'STATICFILES_MANIFEST_ROOT': os.path.join(BASE_DIR, 'my-manifest-directory')
-}
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -50,9 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',
     'django.contrib.staticfiles',
-    'cloudinary',
     'store',
     'cart',
     'payment',
@@ -148,13 +137,13 @@ STATIC_URL = '/static/'
 # cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME')
 # STATIC_URL = f'https://res.cloudinary.com/{cloud_name}/static/'
 
-# STATICFILES_DIRS = ['static/']
+STATICFILES_DIRS = ['static/']
 
 # Apply compression and caching of static files for better performance. Controls where static files are stored and served from.
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Serving Static Files from Cloudinary
-STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
+# STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
 
 
 # Now that we are using Cloudinary to serve Media Files (Images), we don't need to define a MEDIA_URL and MEDIA_ROOT
