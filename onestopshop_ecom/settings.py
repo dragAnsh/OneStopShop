@@ -133,7 +133,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 # specifies a folder where you want to collect your static files. Make sure to run "python3 manage.py collectstatic"
-STATIC_ROOT = BASE_DIR / 'productionfiles'
+# STATIC_ROOT = BASE_DIR / 'productionfiles'
 # STATIC_URL = 'static/'
 
 # Change STATIC_URL to serve Files from Cloudinary
