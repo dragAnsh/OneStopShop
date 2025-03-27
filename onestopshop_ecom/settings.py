@@ -28,10 +28,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG') != "False"
+DEBUG = False
 
-ALLOWED_HOSTS = ['onestopshop-production.up.railway.app']
-CSRF_TRUSTED_ORIGINS = ['https://onestopshop-production.up.railway.app']
+ALLOWED_HOSTS = ['onestopshop-production.up.railway.app', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://onestopshop-production.up.railway.app', 'https://127.0.0.1']
 
 # Application definition
 
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'store',
     'cart',
     'payment',
+    'whitenoise.runserver_nostatic'
 ]
 
 MIDDLEWARE = [
@@ -131,20 +132,11 @@ USE_TZ = True
 
 # specifies a folder where you want to collect your static files. Make sure to run "python3 manage.py collectstatic"
 STATIC_ROOT = BASE_DIR / 'productionfiles'
-STATIC_URL = '/static/'
-
-# Change STATIC_URL to serve Files from Cloudinary
-# cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME')
-# STATIC_URL = f'https://res.cloudinary.com/{cloud_name}/static/'
-
+STATIC_URL = 'static/'
 STATICFILES_DIRS = ['static/']
 
 # Apply compression and caching of static files for better performance. Controls where static files are stored and served from.
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Serving Static Files from Cloudinary
-# STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
-
 
 # Now that we are using Cloudinary to serve Media Files (Images), we don't need to define a MEDIA_URL and MEDIA_ROOT
 
