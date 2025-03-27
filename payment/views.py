@@ -98,7 +98,7 @@ def generate_invoice(request, order_id):
     # Footer
     p.setFont("Helvetica", 10)
     p.drawString(50, 30, "Thank you for shopping with us!")
-    p.drawString(50, 15, "For any queries, contact support@onestopcode.com")
+    p.drawString(50, 15, "For any queries, contact support@onestopshop.com")
 
     p.showPage()
     p.save()

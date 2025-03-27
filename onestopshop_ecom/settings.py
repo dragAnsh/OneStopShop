@@ -138,7 +138,10 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = ['static/']
 
 # Apply compression and caching of static files for better performance. Controls where static files are stored and served from.
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Serving Static Files from Cloudinary
+STATICFILES_STORAGE = 'cloudinary.storage.StaticHashedCloudinaryStorage'
 
 
 # Now that we are using Cloudinary to serve Media Files (Images), we don't need to define a MEDIA_URL and MEDIA_ROOT
