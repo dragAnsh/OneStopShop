@@ -115,7 +115,7 @@ def repeat_order(request, order_id):
 
         # Append Products to Cart
         for item in order_items:
-            cart.add(item.product, item.quantity)
+            cart.add(item.product.id, item.quantity)
 
         # Review Your Cart and then Checkout
         messages.success(request, "Items added to your cart! Review before checkout.")

@@ -6,6 +6,7 @@ from .forms import SignUpForm, UpdateUserForm, UpdatePasswordForm, UserInfoForm
 from payment.forms import ShippingForm
 from django.db.models import Q
 from cart.cart import Cart
+from cart.saved_items import SavedItems
 from payment.models import ShippingAddress
 # from cart.models import UserCart
 import json
@@ -175,6 +176,13 @@ def login_user(request):
                 # Add the loaded cart dict to our session
                 cart = Cart(request)
                 cart.db_add(saved_cart_dict)
+
+            # Handle Merging SavedItems from DB to session
+            saved_items_str = current_user_profile.saved_items
+            saved_items_list = json.loads(saved_items_str)
+
+            saved_items = SavedItems(request)
+            saved_items.db_add(saved_items_list)
 
             messages.success(request, "You have Successfully Logged In!")
             return redirect('home')

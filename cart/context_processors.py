@@ -1,3 +1,4 @@
+from .saved_items import SavedItems
 from .cart import Cart
 
 
@@ -5,3 +6,7 @@ from .cart import Cart
 def cart(request):
     # return the default Cart object
     return {'cart': Cart(request)}
+
+
+def saved_items(request):
+    return {'saved_items': SavedItems(request)}

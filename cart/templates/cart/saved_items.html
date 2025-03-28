@@ -1,0 +1,192 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">WishList</h1>
+                <p class="lead fw-normal text-white-50 mb-0">View Your Saved Items</p>
+            </div>
+        </div>
+    </header>
+
+    {% if products|length == 0 %}
+
+        <div class="container my-5">
+            <h3>You haven’t saved any items yet!.</h3>
+            <br><br>
+            <a href="{% url 'home' %}" class="btn btn-secondary">Add Items</a>
+        </div>
+
+    {% else %}
+        <div class="container my-5">
+            <div class="d-flex flex-row-reverse mt-2">
+                <button type="button" class="btn btn-outline-danger rounded-pill me-2" id="empty_saved_items">
+                    <i class="bi-trash-fill me-1"></i>
+                    Empty Saved Items
+                </button>
+                <button type="button" class="btn btn-outline-success rounded-pill me-2" id="move_all_to_cart">
+                    <i class="bi-cart-fill me-1"></i>
+                    Move Everything to Cart
+                </button>
+            </div>
+            <br><br>
+            {% for product in products %}
+
+                <div class="card mb-3 shadow-sm border-0 rounded-3" id="cart-item-{{product.id}}">
+                    <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="{{product.image.url}}" class="img-fluid rounded-start" alt="Image of Product" loading="lazy">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <center>
+                                <h5 class="card-title">{{product.name}}</h5>
+                                <p class="card-text text-muted">{{product.description}}</p>
+                                {% if product.on_sale %}
+                                    <!-- Sale badge-->
+                                    <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">Sale</div>
+                                    <div class="d-flex justify-content-center small text-warning mb-2">
+                                        <i class="bi bi-star-fill me-1"></i>
+                                        <i class="bi bi-star-fill me-1"></i>
+                                        <span class="text-dark fw-bold me-1">SALE!!!</span>
+                                        <i class="bi bi-star-fill me-1"></i>
+                                        <i class="bi bi-star-fill"></i>
+                                    </div>
+        
+                                    <span class="text-muted text-decoration-line-through">${{product.price}}</span>
+                                    <h4 class="text-success">${{product.sale_price}}</h4>
+                                {% else %}
+                                    <h4 class="text-success">${{product.price}}</h4>
+                                {% endif %}
+                                <br>
+        
+                                <br><br>
+                                <a href="{% url 'home' %}" class="btn btn-secondary">Back To Home</a>
+                                <br><br>
+                                
+                                <button type="button" class="btn btn-danger remove-item" data-index="{{product.id}}">Remove</button>
+                                <button type="button" class="btn btn-sm btn-outline-info rounded-pill position-absolute move_to_cart" data-index="{{product.id}}" style="top: 3rem; right: 0.2rem">
+                                    <i class="bi-cart-fill me-1"></i>
+                                    Move to Cart
+                                </button>
+                                <br>
+                            </center>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <br>
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+    <br>
+    
+    <script>
+        // Remove Product from Saved Items
+        $(document).on('click', '.remove-item', function(e) {
+            e.preventDefault();
+
+            // grab the product id
+            var productid = $(this).data('index');
+
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'remove_item' %}",
+                data: {
+                    product_id: productid,
+                    csrfmiddlewaretoken: '{{csrf_token}}',
+                    action: 'post'
+                },
+
+                success: function(json) {
+                    location.reload();
+                },
+
+                error: function(xhr, errmsg, err) {
+
+                }
+            });
+        })
+
+
+
+        // Move Product to Cart
+        $(document).on('click', '.move_to_cart', function(e) {
+            e.preventDefault();
+
+            // grab the product id
+            var productid = $(this).data('index');
+
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'move_to_cart' %}",
+                data: {
+                    product_id: productid,
+                    csrfmiddlewaretoken: '{{csrf_token}}',
+                    action: 'post'
+                },
+
+                success: function(json) {
+                    location.reload();
+                },
+
+                error: function(xhr, errmsg, err) {
+
+                }
+            });
+        })
+
+
+        // Move Everything to Cart
+        $(document).on('click', '#move_all_to_cart', function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'move_all_to_cart' %}",
+                data: {
+                    csrfmiddlewaretoken: '{{csrf_token}}',
+                    action: 'post'
+                },
+
+                success: function(json) {
+                    location.reload();
+                },
+
+                error: function(xhr, errmsg, err) {
+
+                }
+            });
+        })
+
+        // Empty Saved Items
+        $(document).on('click', '#empty_saved_items', function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'empty_saved_items' %}",
+                data: {
+                    csrfmiddlewaretoken: '{{csrf_token}}',
+                    action: 'post'
+                },
+
+                success: function(json) {
+                    location.reload();
+                },
+
+                error: function(xhr, errmsg, err) {
+
+                }
+            });
+        })
+    </script>
+
+{% endblock %}

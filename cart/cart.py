@@ -1,3 +1,4 @@
+from .saved_items import SavedItems
 from  store.models import Product, Profile
 import json
 
@@ -48,8 +49,8 @@ class Cart:
         self.update_db()
 
 
-    def add(self, product, quantity):
-        product_id = str(product.id) # converting it to string because we are going to use it as a key in our cart dictionary
+    def add(self, product_id, quantity):
+        product_id = str(product_id) # converting it to string because we are going to use it as a key in our cart dictionary
 
         # logic
         # if product_id not in self.cart:
@@ -140,6 +141,19 @@ class Cart:
 
     def clear(self):
         self.cart.clear()
+        self.update_db()
         self.session.modified = True  # Ensure session updates
         # or
         # del self.session['session_key']
+
+    
+    def move_to_saved_items(self, product_id):
+        saved_items = SavedItems(self.request)
+        saved_items.add(product_id)
+        self.remove(product_id)
+
+    
+    def move_all_to_saved_items(self):
+        product_ids = list(self.cart.keys())
+        for product_id in product_ids:
+            self.move_to_saved_items(product_id)

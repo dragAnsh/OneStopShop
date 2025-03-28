@@ -53,7 +53,12 @@
                         <br><br>
                         
 
-                        <div class="container"><button type="buton" value="{{product.id}}" class="btn btn-secondary" id="add-to-cart">Add to Cart</button></div>
+                        <div class="container"><button type="button" value="{{product.id}}" class="btn btn-secondary" id="add-to-cart">Add to Cart</button></div>
+
+                        <button type="button" value="{{product.id}}" class="btn btn-outline-danger rounded-pill position-absolute" id="save_item" style="top: 3rem; right: 0.2rem">
+                            <i class="bi-heart-fill me-1"></i>
+                            Save Item
+                        </button>
                     </center>
                 </div>
             </div>
@@ -80,7 +85,7 @@
                     // console.log(json)
                     // we want to update the id of the span in navbar the one with quantity
                     // document.getElementById('cart_quantity').innerHTML = json['Cart Quantity']
-                    document.getElementById('cart_quantity').textContent = json['Cart Quantity']
+                    // document.getElementById('cart_quantity').textContent = json['Cart Quantity']
                     location.reload();
                     
                     // Show the alert
@@ -91,6 +96,29 @@
                     // setTimeout(function() {
                     //     alertBox.style.display = 'none';
                     // }, 2000);
+                },
+
+                error: function(xhr, errmsg, err) {
+
+                }
+            });
+        })
+
+        // Add Item to WishList/Saved Items
+        $(document).on('click', '#save_item', function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'save_item' %}",
+                data: {
+                    product_id: $('#save_item').val(),
+                    csrfmiddlewaretoken: '{{csrf_token}}',
+                    action: 'post'
+                },
+
+                success: function(json) {
+                    location.reload();
                 },
 
                 error: function(xhr, errmsg, err) {
