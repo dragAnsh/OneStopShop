@@ -23,6 +23,9 @@ class Cart:
         # self.cart = self.session.get('session_key', {})
         # self.session['session_key'] = self.cart
 
+        # Cache Products in the Cart to avoid duplicate queries
+        self._products_cache = None
+
     
     def update_db(self):
         # updates the user's cart in db if he is logged in
@@ -47,6 +50,7 @@ class Cart:
 
         # Deal With Logged In Users: If we log out and then add some stuff while being logged out and then log back in so we wanna update our DB to have those items as well
         self.update_db()
+        self._products_cache = None # Reset cache
 
 
     def add(self, product_id, quantity):
@@ -72,6 +76,7 @@ class Cart:
 
         # Deal With Logged In Users
         self.update_db()
+        self._products_cache = None # Reset cache
 
 
     def __len__(self):
@@ -80,20 +85,21 @@ class Cart:
     
     
     def get_products(self):
-        # get ids from cart
-        product_ids = self.cart.keys()
+        if self._products_cache is None:
+            # get ids from cart
+            product_ids = self.cart.keys()
 
-        # use ids to lookup products in DB
-        products = Product.objects.filter(id__in=product_ids)
-        return products
+            # use ids to lookup products in DB
+            self._products_cache = Product.objects.filter(id__in=product_ids)
     
-        # me trying to return a list of 2-tuple (product and it's quantity)
-        # temp = []
+            # me trying to return a list of 2-tuple (product and it's quantity)
+            # temp = []
 
-        # for product in products:
-        #     temp.append((product, self.cart[str(product.id)]))
+            # for product in products:
+            #     temp.append((product, self.cart[str(product.id)]))
 
-        # return temp
+            # return temp
+        return self._products_cache
 
 
     def get_quantities(self):
@@ -108,6 +114,7 @@ class Cart:
 
         # Deal with logged in users
         self.update_db()
+        self._products_cache = None # Reset cache
 
     
     def remove(self, product_id):
@@ -118,6 +125,7 @@ class Cart:
 
         # Deal with logged in users
         self.update_db()
+        self._products_cache = None # Reset cache
 
     
     def cart_total(self):
@@ -145,6 +153,7 @@ class Cart:
         self.session.modified = True  # Ensure session updates
         # or
         # del self.session['session_key']
+        self._products_cache = None # Reset cache
 
     
     def move_to_saved_items(self, product_id):

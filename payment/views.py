@@ -15,7 +15,7 @@ from .models import Order, OrderItem
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 
 
 def generate_invoice(request, order_id):
@@ -148,6 +148,11 @@ def user_orders_list(request, filter):
         elif filter == "unshipped":
             user_orders = user_orders.filter(shipped=False)
 
+        # Use Prefetch to do a join on orderitem and product: Tackle (N+1) problem
+        user_orders = user_orders.prefetch_related(
+            Prefetch("orderitem_set", queryset=OrderItem.objects.select_related("product"))
+        ).order_by("-date_ordered")
+
         if search_text:
             search_text = search_text.strip()
             user_orders = user_orders.filter(Q(orderitem__product__name__icontains=search_text)
@@ -166,7 +171,7 @@ def user_orders_list(request, filter):
 def user_order_detail(request, order_id):
     if request.user.is_authenticated:
         user_order = get_object_or_404(Order, id=order_id)
-        user_order_items = OrderItem.objects.filter(order=user_order)
+        user_order_items = OrderItem.objects.select_related("product").filter(order=user_order) # Use select_related for FK relationship:Tackle (N+1) problem
         return render(request, 'payment/user_order_detail.html', {'user_order': user_order, 'user_order_items': user_order_items})
     else:
         messages.error(request, "ACCESS DENIED!")
@@ -213,7 +218,7 @@ def orders(request, pk):
     if request.user.is_authenticated and request.user.is_superuser:
         # get the order and order items
         order = get_object_or_404(Order, id=pk)
-        order_items = OrderItem.objects.filter(order=order)
+        order_items = OrderItem.objects.select_related("product").filter(order=order)
 
         return render(request, 'payment/orders.html', {'order': order, 'order_items': order_items})
     

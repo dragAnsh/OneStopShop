@@ -5,6 +5,7 @@ charset-normalizer==3.4.1
 cloudinary==1.43.0
 Django==5.1.7
 django-cloudinary-storage==0.3.0
+django-debug-toolbar==5.1.0
 gunicorn==23.0.0
 idna==3.10
 packaging==24.2

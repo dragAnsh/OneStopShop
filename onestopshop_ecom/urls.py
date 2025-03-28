@@ -10,6 +10,10 @@ urlpatterns = [
     path('payment/', include('payment.urls')),
 ]
 
+if settings.DEBUG:
+    from debug_toolbar.toolbar import debug_toolbar_urls
+    urlpatterns += debug_toolbar_urls()
+
 # # Serve Media Files Locally in DEBUG Mode OR We can remove this completely and let Cloudinary serve files for us
 # if settings.DEBUG:
 #     urlpatterns += static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
