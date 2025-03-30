@@ -4,7 +4,8 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 from .models import Order, OrderItem
 from reportlab.lib import colors
-from reportlab.platypus import Table, TableStyle
+from reportlab.platypus import Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
 
 
 def generate_invoice_pdf(order_id):
@@ -31,7 +32,7 @@ def generate_invoice_pdf(order_id):
     p.setFont("Helvetica", 12)
     details = [
         f"Full Name: {order.full_name}",
-        f"Contact: {order.user.profile.phone}",
+        f"Contact: {order.phone}",
         f"Order ID: {order.id}",
         f"Order Date: {order.date_ordered.strftime('%B %d, %Y')}",
         f"Payment Method: PayPal",
@@ -45,21 +46,13 @@ def generate_invoice_pdf(order_id):
     y_position -= 30  # Space before address
     p.setFont("Helvetica-Bold", 12)
     p.drawString(50, y_position, "Shipping Address:")
-    y_position -= 20
-
     p.setFont("Helvetica", 12)
-    address_lines = [
-        order.address_line_1,
-        order.address_line_2 if order.address_line_2 else "",
-        f"{order.city}, {order.state} - {order.zip_code}",
-        order.country
-    ]
-    for line in address_lines:
-        if line:
-            p.drawString(50, y_position, line)
-            y_position -= 20
 
-    y_position -= 30  # Space before the table
+    styles = getSampleStyleSheet()
+    shipping_text = Paragraph(f"{order.shipping_address.replace('\n', '<br/>')}", styles["Normal"])
+    shipping_text.wrapOn(p, 400, 200)
+    shipping_text.drawOn(p, 50, y_position - 80)
+    y_position -= 120
 
     # Table Header & Data
     data = [["Product", "Qty", "Unit Price", "Total Price"]]
@@ -78,7 +71,7 @@ def generate_invoice_pdf(order_id):
     ]))
 
     # Dynamic Table Handling
-    max_rows_per_page = 10  # Adjust as needed
+    max_rows_per_page = 16  # Adjust as needed
     header = data[0]  # Table header
     rows = data[1:]  # Table rows
 

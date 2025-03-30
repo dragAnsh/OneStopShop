@@ -219,8 +219,7 @@ def register_user(request):
         else:
             for error in list(form.errors.values()):
                 messages.error(request, error)
-            # messages.success(request, "There Was An Error Registering You!")
-            return redirect('register')
+            return render(request, 'store/register.html', {'form': form})
 
     else:
         return render(request, 'store/register.html', {'form': form})

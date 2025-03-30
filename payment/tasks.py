@@ -12,7 +12,6 @@ def send_order_confirmation_email_task(user_order_id):
     """
     Sends an email for Order Confirmation with an HTML template and attaches an invoice PDF.
     :param user_order: Order instance
-    :param user_email: Recipient's email address
     """
     user_order = Order.objects.prefetch_related(
             Prefetch("orderitem_set", queryset=OrderItem.objects.select_related("product"))
@@ -48,7 +47,6 @@ def send_order_shipped_email_task(user_order_id):
     """
     Sends an email for Order Shipped Update with an HTML template and attaches an invoice PDF.
     :param user_order: Order instance
-    :param user_email: Recipient's email address
     """
     user_order = Order.objects.prefetch_related(
             Prefetch("orderitem_set", queryset=OrderItem.objects.select_related("product"))
@@ -84,7 +82,6 @@ def send_order_unshipped_email_task(user_order_id):
     """
     Sends an email for Order Unshipped Update with an HTML template and attaches an invoice PDF.
     :param user_order: Order instance
-    :param user_email: Recipient's email address
     """
     user_order = Order.objects.prefetch_related(
             Prefetch("orderitem_set", queryset=OrderItem.objects.select_related("product"))

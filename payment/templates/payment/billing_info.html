@@ -14,79 +14,82 @@
     <br><br>
 
     <div class="container">
-        <div class="col-md-6 offset-md-3">
-            <div class="card">
-                <div class="card-header">
-                    <strong>Order Summary</strong>
+        <div class="row">
+            <!-- Left Content: Shipping & Billing Info -->
+            <div class="col-md-7">
+                <!-- Shipping Info -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <strong>Shipping Info</strong>
+                    </div>
+                    <div class="card-body">
+                        <strong>Phone:</strong> {{shipping_info.shipping_phone}} <br>
+                        <strong>Name:</strong> {{shipping_info.shipping_full_name}} <br>
+                        <strong>Email:</strong> {{shipping_info.shipping_email}} <br>
+                        <strong>Address 1:</strong> {{shipping_info.shipping_address1}} <br>
+                        {% if shipping_info.shipping_address2 %}
+                            <strong>Address 2:</strong> {{shipping_info.shipping_address2}} <br>
+                        {% endif %}
+                        <strong>City:</strong> {{shipping_info.shipping_city}} <br>
+                        {% if shipping_info.shipping_state %}
+                            <strong>State:</strong> {{shipping_info.shipping_state}} <br>
+                        {% endif %}
+                        {% if shipping_info.shipping_zipcode %}
+                            <strong>ZipCode:</strong> {{shipping_info.shipping_zipcode}} <br>
+                        {% endif %}
+                        <strong>Country:</strong> {{shipping_info.shipping_country}} <br>
+                        <br>
+                        <a href="{% url 'checkout' %}" class="btn btn-outline-secondary">Update Shipping Info</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        {% for product in products %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><h5>{{ product.name }}</h5></span>
-                                <span>
-                                    <small>
-                                        {% if product.on_sale %}
-                                            ${{ product.sale_price }}
-                                        {% else %}
-                                            ${{ product.price }}
-                                        {% endif %}
-                                        * {{ product.qty }} = 
-                                    </small>
-                                    ${{ product.total_price }}
-                                </span>
-                            </li>
-                            <br>
-                        {% endfor %}
-                        
-                        <li class="list-group-item"><div align="right"><h4>Total: ${{cart_total}}</h4></div></li>
-                    </ul>
-                    <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-secondary">Update Items</a>
-                    
+    
+                <!-- Billing Info -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <strong>Billing Info</strong>
+                    </div>
+                    <div class="card-body">
+                        <form action="{% url 'process_order' %}" method="post">
+                            {% csrf_token %}
+                            {{billing_form.as_p}}
+                    </div>
                 </div>
+                            <button type="submit" class="btn btn-success mb-2">PAY NOW</button>
+                        </form>
             </div>
-            <br>
-            
-            <div class="card">
-                <div class="card-header">
-                    <strong>Shipping Info</strong>
-                </div>
-                <div class="card-body">
-                    <strong>Phone: </strong> {{shipping_info.shipping_phone}} <br>
-                    <strong>Name: </strong> {{shipping_info.shipping_full_name}} <br>
-                    <strong>Email: </strong> {{shipping_info.shipping_email}} <br>
-                    <strong>Address 1: </strong> {{shipping_info.shipping_address1}} <br>
-                    {% if shipping_info.shipping_address2 %}  <strong>Address 2: </strong> {{shipping_info.shipping_address2}} <br> {% endif %}
-                    <strong>City: </strong> {{shipping_info.shipping_city}} <br>
-                    {% if shipping_info.shipping_state %} <strong>State: </strong> {{shipping_info.shipping_state}} <br> {% endif %}
-                    {% if shipping_info.shipping_zipcode %} <strong>ZipCode: </strong> {{shipping_info.shipping_zipcode}} <br> {% endif %}
-                    <strong>Country: </strong> {{shipping_info.shipping_country}} <br>
-                    <br>
 
-                    <a href="{% url 'checkout' %}" class="btn btn-outline-secondary">Update Shipping Info</a>
-                </div>
-            </div>
-            
-            <br><br>
 
-            <div class="card">
-                <div class="card-header">
-                    <strong>Billing Info</strong>
-                </div>
-                <div class="card-body">
-                    <form action="{% url 'process_order' %}" method="post">
-                        {% csrf_token %}
-                        {{billing_form.as_p}}
+            <!-- Right Sidebar: Order Summary -->
+            <div class="col-md-5">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <strong>Order Summary</strong>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for product in products %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <h6>{{ product.name }}</h6>
+                                    <span>
+                                        <small>
+                                            {% if product.on_sale %}
+                                                ${{ product.sale_price }}
+                                            {% else %}
+                                                ${{ product.price }}
+                                            {% endif %}
+                                            * {{ product.qty }} =
+                                        </small>
+                                        ${{ product.total_price }}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                            <li class="list-group-item"><div align="right"><h4>Total: ${{cart_total}}</h4></div></li>
+                        </ul>
+                        <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-secondary">Update Items</a>
+                    </div>
                 </div>
             </div>
-            
-            <br>
-            
-                        <button type="submit" class="btn btn-success">PAY NOW</button>
-                    </form>
         </div>
     </div>
-
     <br>
-
 {% endblock %}

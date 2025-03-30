@@ -39,6 +39,7 @@ class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True) # Logged In Users and Guests both can checkout: thus null=True
     # Add Shipping Details seperately so even if a User deletes ShippingAddress objects, we still have the record. Thus not making a ForeignKey. ??? IDK ACTUALLY. Because we are not allowing users to dlete their shipping addresses. I think it would be better to have FK instead of repeating the same info. CHECK LATER!!!
     full_name = models.CharField(max_length=200)
+    phone = models.CharField(max_length=10)
     email = models.EmailField(max_length=200)
     shipping_address = models.TextField(max_length=2000) # contains Address, city, state, zipcode, country
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2)

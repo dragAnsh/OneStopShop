@@ -24,3 +24,4 @@ productionfiles/
 # Ignore docs
 railway_app_docs.txt
 commands.txt
+ignore.py

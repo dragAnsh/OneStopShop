@@ -204,9 +204,10 @@ def process_order(request):
         email = shipping_info['shipping_email']
         amount_paid = cart_total
         user = request.user if request.user.is_authenticated else None
+        phone = shipping_info['shipping_phone']
 
         # Create an order
-        create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
+        create_order = Order(user=user, full_name=full_name, phone=phone, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
         create_order.save()
 
         # Create Order Items
@@ -227,8 +228,9 @@ def process_order(request):
         # Empty Shopping Cart From DB
         if request.user.is_authenticated:
             Profile.objects.filter(user=user).update(old_cart="")
-            # Send Order Confirmation Email: Use Celery as Distributed Task Queue and Redis as Message Broker 
-            send_order_confirmation_email_task.delay(create_order.id)
+
+        # Send Order Confirmation Email: Use Celery as Distributed Task Queue and Redis as Message Broker 
+        send_order_confirmation_email_task.delay(create_order.id)
 
         messages.success(request, "Order Placed!")
         return redirect('home')
