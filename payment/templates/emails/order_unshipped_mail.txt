@@ -1,0 +1,25 @@
+Hello {{ user_order.full_name }},
+
+Your Order has been marked Unshipped but don't worry Your order will be Shipped soon.
+
+We have attached your invoice for Order#{{ user_order.id }}.
+
+Order Summary:
+----------------------------------------------------------------------
+Placed on {{ user_order.date_ordered }}
+
+{% for item in user_order.orderitem_set.all %}
+ - {{ item.product.name }}
+  Qty: {{ item.quantity }}
+  Price: ${{ item.product.price }}
+{% endfor %}
+
+----------------------------------------------------------------------
+Total Amount: ${{ user_order.amount_paid }}
+
+If you have any questions, feel free to contact us.
+
+We hope to see you again soon.
+
+Best Regards,  
+OneStopShop Team

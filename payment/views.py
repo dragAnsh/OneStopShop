@@ -8,14 +8,11 @@ from .models import ShippingAddress, Order, OrderItem
 from django.core.paginator import Paginator
 from django.utils.timezone import now
 from django.http import FileResponse
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from io import BytesIO
 from .models import Order, OrderItem
-from reportlab.lib import colors
-from reportlab.platypus import Table, TableStyle, Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
 from django.db.models import Q, Prefetch
+from .utils import generate_invoice_pdf
+from .tasks import send_order_unshipped_email_task, send_order_confirmation_email_task, send_order_shipped_email_task
 
 
 def generate_invoice(request, order_id):
@@ -23,88 +20,9 @@ def generate_invoice(request, order_id):
         messages.error(request, "ACCESS DENIED!")
         return redirect('home')
 
-    order = Order.objects.get(id=order_id, user=request.user)
-    order_items = OrderItem.objects.filter(order=order)
+    pdf_data = generate_invoice_pdf(order_id)
 
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
-    y_position = height - 40  # Start position for writing text
-
-    # Company Name
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(50, y_position, "OneStopShop Store")
-    y_position -= 30
-
-    # Invoice Title
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(230, y_position, "Invoice")
-    p.line(50, y_position - 5, 550, y_position - 5)  # Horizontal Line
-    y_position -= 30
-
-    # Customer & Order Details
-    p.setFont("Helvetica", 12)
-    p.drawString(50, y_position, f"Full Name: {order.full_name}")
-    y_position -= 20
-    p.drawString(50, y_position, f"Contact: {order.user.profile.phone}")
-    y_position -= 20
-    p.drawString(50, y_position, f"Order ID: {order.id}")
-    y_position -= 20
-    p.drawString(50, y_position, f"Order Date: {order.date_ordered.strftime('%B %d, %Y')}")
-    y_position -= 20
-    p.drawString(50, y_position, f"Payment Method: PayPal")
-    y_position -= 20
-    p.drawString(50, y_position, f"Total Amount: ${order.amount_paid}")
-    y_position -= 30
-
-    # Shipping Address
-    styles = getSampleStyleSheet()
-    shipping_text = Paragraph(f"<b>Shipping Address:</b><br/>{order.shipping_address.replace('\n', '<br/>')}", styles["Normal"])
-    shipping_text.wrapOn(p, 400, 200)
-    shipping_text.drawOn(p, 50, y_position - 80)
-    y_position -= 120
-
-    # Table Header & Data
-    data = [["Product", "Qty", "Unit Price", "Total Price"]]
-    for item in order_items:
-        data.append([item.product.name, str(item.quantity), f"${item.price}", f"${item.total_price}"])
-
-    # Table Styling
-    table = Table(data, colWidths=[200, 70, 100, 100])
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("BOTTOMPADDING", (0, 0), (-1, 0), 10),
-        ("GRID", (0, 0), (-1, -1), 1, colors.black),
-    ]))
-
-    # Calculate dynamic table height
-    table_height = len(data) * 20
-    if y_position - table_height < 100:  # Prevent table overflow
-        p.showPage()  # Create a new page
-        y_position = height - 40  # Reset position
-
-    table.wrapOn(p, width, height)
-    table.drawOn(p, 50, y_position - table_height)
-
-    # Net Total
-    net_total_y = y_position - table_height - 30
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(400, net_total_y, "Net Total:")
-    p.drawString(470, net_total_y, f"${order.amount_paid}")
-
-    # Footer
-    p.setFont("Helvetica", 10)
-    p.drawString(50, 30, "Thank you for shopping with us!")
-    p.drawString(50, 15, "For any queries, contact support@onestopshop.com")
-
-    p.showPage()
-    p.save()
-
-    buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename=f"invoice_{order.id}.pdf")
+    return FileResponse(BytesIO(pdf_data), as_attachment=True, filename=f"invoice_{order_id}.pdf")
 
 
 def repeat_order(request, order_id):
@@ -182,10 +100,13 @@ def mark_shipped(request, order_id):
     if request.user.is_authenticated and request.user.is_superuser and request.method=='POST':
         Order.objects.filter(id=order_id).update(shipped=True, date_shipped=now()) # calling update() thus pre_save doesn't trigger. for that to trigger use save() to update. or manually pass date_shipped like we are doing now
         messages.success(request, f"Order {order_id} Marked Shipped Successfully!")
+
+        # Send Email to User using Celery + Redis
+        send_order_shipped_email_task.delay(order_id)
         return redirect(request.META.get('HTTP_REFERER', 'home'))
         
         # return JsonResponse({})
-    
+        
     else:
         messages.error(request, "ACCESS DENIED!")
         return redirect('home')
@@ -195,10 +116,13 @@ def mark_unshipped(request, order_id):
     if request.user.is_authenticated and request.user.is_superuser and request.method=='POST':
         Order.objects.filter(id=order_id).update(shipped=False, date_shipped=None)
         messages.success(request, f"Order {order_id} Marked Unshipped Successfully!")
+        
+        # Send Email to User using Celery + Redis
+        send_order_unshipped_email_task.delay(order_id)
         return redirect(request.META.get('HTTP_REFERER', 'home'))
         
         # return JsonResponse({})
-    
+
     else:
         messages.success(request, "ACCESS DENIED!")
         return redirect('home')
@@ -286,21 +210,25 @@ def process_order(request):
         create_order.save()
 
         # Create Order Items
+        order_items = []
         for product in products:
             quantity = quantities.get(str(product.id), 1)
             price = product.sale_price if product.on_sale else product.price
             total_price = round(price * quantity, 2)
             
             create_order_item = OrderItem(order=create_order, product=product, user=user, quantity=quantity, price=price, total_price=total_price)
-            create_order_item.save()
+            order_items.append(create_order_item)
         
-        # Empty Shopping Cart
-        # From Session: Clear the cart dict from our 'cart' object
+        # Bulk Create to Optimize
+        OrderItem.objects.bulk_create(order_items)
+        # Empty Shopping Cart From Session: Clear the cart dict from our 'cart' object
         cart.clear()
 
-        # From DB
+        # Empty Shopping Cart From DB
         if request.user.is_authenticated:
             Profile.objects.filter(user=user).update(old_cart="")
+            # Send Order Confirmation Email: Use Celery as Distributed Task Queue and Redis as Message Broker 
+            send_order_confirmation_email_task.delay(create_order.id)
 
         messages.success(request, "Order Placed!")
         return redirect('home')
