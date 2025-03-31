@@ -36,8 +36,9 @@ if environment == 'Development':
 if environment == 'Production':
     DEBUG = False
 
-ALLOWED_HOSTS = ['onestopshop-production.up.railway.app', 'localhost', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS = ['https://onestopshop-production.up.railway.app', 'https://127.0.0.1']
+site_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '127.0.0.1')
+ALLOWED_HOSTS = [site_domain, 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = [f'https://{site_domain}', 'https://127.0.0.1']
 
 INTERNAL_IPS = [
     '127.0.0.1',
