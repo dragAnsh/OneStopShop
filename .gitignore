@@ -8,6 +8,7 @@ media/
 __pycache__/
 *.pyc
 *.pyo
+.DS_Store
 
 # Ignore Virtual Environment
 ecom_venv/

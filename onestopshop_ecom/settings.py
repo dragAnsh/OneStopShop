@@ -36,8 +36,8 @@ if environment == 'Development':
 if environment == 'Production':
     DEBUG = False
 
-ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1']
+ALLOWED_HOSTS = ['onestopshop-production.up.railway.app', 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://onestopshop-production.up.railway.app', 'https://127.0.0.1']
 
 INTERNAL_IPS = [
     '127.0.0.1',
@@ -173,7 +173,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Celery
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
+CELERY_BROKER_URL = os.environ.get('REDIS_URL')
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_RESULT_EXTENDED = True
