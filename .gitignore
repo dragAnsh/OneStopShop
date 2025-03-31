@@ -19,9 +19,16 @@ venv/
 *.sqlite3
 
 # Ignore static files
-productionfiles/
+static/
 
 # Ignore docs
 railway_app_docs.txt
 commands.txt
 ignore.py
+
+# Ignore Zip Files
+OneStopShop.zip
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

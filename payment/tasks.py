@@ -7,7 +7,7 @@ from django.db.models import Prefetch
 from .utils import generate_invoice_pdf
 
 
-@shared_task
+@shared_task(name='order_confirmation_email')
 def send_order_confirmation_email_task(user_order_id):
     """
     Sends an email for Order Confirmation with an HTML template and attaches an invoice PDF.
@@ -40,9 +40,11 @@ def send_order_confirmation_email_task(user_order_id):
 
     # Send Email
     msg.send()
+    # To display result in Flower
+    return f"Email sent to {user_email}"
 
 
-@shared_task
+@shared_task(name='order_shipped_email')
 def send_order_shipped_email_task(user_order_id):
     """
     Sends an email for Order Shipped Update with an HTML template and attaches an invoice PDF.
@@ -75,9 +77,11 @@ def send_order_shipped_email_task(user_order_id):
 
     # Send Email
     msg.send()
+    # To display result in Flower
+    return f"Email sent to {user_email}"
 
 
-@shared_task
+@shared_task(name='order_unshipped_email')
 def send_order_unshipped_email_task(user_order_id):
     """
     Sends an email for Order Unshipped Update with an HTML template and attaches an invoice PDF.
@@ -110,3 +114,5 @@ def send_order_unshipped_email_task(user_order_id):
 
     # Send Email
     msg.send()
+    # To display result in Flower
+    return f"Email sent to {user_email}"

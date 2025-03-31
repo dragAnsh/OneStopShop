@@ -1,6 +1,6 @@
+import os
 from pathlib import Path
 from dotenv import load_dotenv
-import os
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -36,8 +36,8 @@ if environment == 'Development':
 if environment == 'Production':
     DEBUG = False
 
-ALLOWED_HOSTS = ['onestopshop-production.up.railway.app', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS = ['https://onestopshop-production.up.railway.app', 'https://127.0.0.1']
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1']
 
 INTERNAL_IPS = [
     '127.0.0.1',
@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'payment',
     'whitenoise.runserver_nostatic',
     'debug_toolbar',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -174,3 +175,5 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Celery
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_RESULT_EXTENDED = True
