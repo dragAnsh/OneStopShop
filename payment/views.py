@@ -13,6 +13,7 @@ from .models import Order, OrderItem
 from django.db.models import Q, Prefetch
 from .utils import generate_invoice_pdf
 from .tasks import send_order_unshipped_email_task, send_order_confirmation_email_task, send_order_shipped_email_task
+from django.contrib.auth.models import User
 
 
 def generate_invoice(request, order_id):
@@ -316,6 +317,11 @@ def checkout(request):
     if request.user.is_authenticated:
         # Checkout as LoggedIn User
         shipping_user = ShippingAddress.objects.get(user=request.user)
+
+        # If User has Email in their User Model then fetch it from there and prepopulate Shipping Form
+        if shipping_user.shipping_email == '':
+            shipping_user.shipping_email = User.objects.get(username=request.user.username).email
+
         shipping_form = ShippingForm(instance=shipping_user)
         return render(request, 'payment/checkout.html', {'products': products, 'cart_total': cart_total, 'shipping_form': shipping_form})
     else:
