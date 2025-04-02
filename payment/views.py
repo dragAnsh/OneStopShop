@@ -80,7 +80,13 @@ def user_orders_list(request, filter):
         user_orders = user_orders.order_by("-date_ordered")
         
         has_orders = True if user_orders.exists() else False
-        return render(request, 'payment/user_orders_list.html', {'user_orders': user_orders, 'filter': filter, 'has_orders': has_orders})
+
+        # Pagination: Show 5 orders per page
+        paginator = Paginator(user_orders, 5)
+        page_number = request.GET.get("page")
+        page_orders = paginator.get_page(page_number)
+
+        return render(request, 'payment/user_orders_list.html', {'user_orders': page_orders, 'filter': filter, 'has_orders': has_orders})
     else:
         messages.error(request, "ACCESS DENIED!")
         return redirect('home')
@@ -156,8 +162,8 @@ def shipped_dashboard(request):
         # only admin can access this page
         orders = Order.objects.filter(shipped=True).order_by("-date_ordered")
 
-        # Pagination: Show 5 orders per page
-        paginator = Paginator(orders, 5) # Django does not immediately split the queryset. Instead, it: 1. Stores the queryset (orders) internally. 2. Stores the number of objects per page (5). 3. Waits until you request a specific page to slice the queryset dynamically.
+        # Pagination: Show 10 orders per page
+        paginator = Paginator(orders, 10) # Django does not immediately split the queryset. Instead, it: 1. Stores the queryset (orders) internally. 2. Stores the number of objects per page (5). 3. Waits until you request a specific page to slice the queryset dynamically.
         page_number = request.GET.get("page")
         page_orders = paginator.get_page(page_number) # The method converts the page number to an integer. It calculates the start and end indices based on the page size. start = (2 - 1) * 10  # 10 end = start + 10  # 20. It slices the queryset dynamically like this: page_queryset = orders[10:20]  # Equivalent of LIMIT and OFFSET in SQL. It creates a Page object that holds this sliced queryset.
 
@@ -171,16 +177,16 @@ def not_yet_shipped_dashboard(request):
     if request.user.is_authenticated and request.user.is_superuser:
         orders = Order.objects.filter(shipped=False).order_by("-date_ordered")
 
-        # Pagination: Show 5 orders per page
-        paginator = Paginator(orders, 5)
+        # Pagination: Show 10 orders per page
+        paginator = Paginator(orders, 10)
         page_number = request.GET.get("page")  # Get the page number from URL
-        page_orders = paginator.get_page(page_number) 
+        page_orders = paginator.get_page(page_number)
 
         return render(request, 'payment/not_yet_shipped_dashboard.html', {"orders": page_orders})
     else:
         messages.error(request, "ACCESS DENIED!")
         return redirect('home')
-
+   
 
 def process_order(request):
     if request.method=='POST':
