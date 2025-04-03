@@ -53,8 +53,9 @@
             </div>
         </div>
     </header>
-
-    <br><br>
+    <br>
+    <!-- 10 Minutes Countdown for the Page to Expire -->
+    <div id="countdown" style="text-align: center; font-weight: bold; margin-bottom: 20px; color: red; font-size: 24px;"></div>
 
     <div class="container">
         <div class="row">
@@ -236,5 +237,23 @@
                 }
             });
         });
+
+    // let countdownTime = 600; // 10 minutes in seconds
+    let countdownTime = 600; // 10 minutes in seconds
+
+    function updateCountdown() {
+        let minutes = Math.floor(countdownTime / 60);
+        let seconds = countdownTime % 60;
+        document.getElementById("countdown").textContent = `Your order will expire in ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+        if (countdownTime <= 0) {
+            window.location.href = "{% url 'home' %}"; // Replace with your home page URL
+        } else {
+            countdownTime--;
+            setTimeout(updateCountdown, 1000); // Update every second
+        }
+    }
+
+    updateCountdown();
 </script>
 {% endblock %}

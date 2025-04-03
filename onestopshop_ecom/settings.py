@@ -185,3 +185,11 @@ CELERY_RESULT_EXTENDED = True
 # Paypal Settings
 PAYPAL_TEST = True # Set Sandbox to True
 PAYPAL_RECEIVER_EMAIL = 'business_@onestopshop.com' # Business Sandbox account email
+
+# CACHE
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://localhost:6379/0",
+    }
+}

@@ -112,9 +112,10 @@
 
             {% elif filter == 'all' %}
                 <center>
-                    <h3>You haven't placed any orders yet!</h3>
                     <br><br>
-                    <a href="{% url 'home' %}" class="btn btn-secondary">Start Shopping</a>
+                    <h3>You haven't placed any orders yet!</h3>
+                    <br>
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg me-3">Start Shopping</a>
                 </center>
             {% else %}
                 <center>

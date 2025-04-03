@@ -14,9 +14,12 @@
     {% if products|length == 0 %}
 
         <div class="container my-5">
-            <h3>You haven’t saved any items yet!.</h3>
-            <br><br>
-            <a href="{% url 'home' %}" class="btn btn-secondary">Add Items</a>
+            <center>
+                <br><br>
+                <h3>You haven’t saved any items yet!.</h3>
+                <br>
+                <a href="{% url 'home' %}" class="btn btn-primary btn-lg me-3">Add Items</a>
+            </center>
         </div>
 
     {% else %}

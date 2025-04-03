@@ -40,12 +40,6 @@ class Order(models.Model):
         "PayPal": "PayPal",
         "Stripe": "Stripe",
         "COD": "Cash On Delivery",
-        "NA": "NA"
-    }
-
-    order_status_choices = {
-        "Pending": "Pending",
-        "Processed": "Processed",
     }
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True) # Logged In Users and Guests both can checkout: thus null=True
@@ -62,7 +56,6 @@ class Order(models.Model):
     date_ordered = models.DateTimeField(auto_now_add=True)
     shipped = models.BooleanField(default=False)
     date_shipped = models.DateTimeField(blank=True, null=True)
-    status = models.CharField(max_length=20, default="Pending", choices=order_status_choices)
     invoice_id = models.CharField(max_length=36, blank=True)
     payment_method = models.CharField(max_length=6, choices=payment_method_choices)
 

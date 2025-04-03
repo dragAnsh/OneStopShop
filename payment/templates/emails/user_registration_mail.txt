@@ -1,0 +1,15 @@
+Hello {{ first_name }},
+
+Thank you for registering on OneStopShop! We're excited to have you on board.
+
+Get Started:
+- Browse our latest products and offers.
+- Save your favorite items for later.
+- Enjoy a seamless shopping experience.
+
+We’re here to help you with anything you need. If you have any questions, feel free to reach out to our support team.
+
+Start Shopping: https://obliging-mantis-cool.ngrok-free.app/
+
+Best Regards,
+OneStopShop Team
