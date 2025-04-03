@@ -31,11 +31,11 @@ def generate_invoice_pdf(order_id):
     # Customer & Order Details
     p.setFont("Helvetica", 12)
     details = [
-        f"Full Name: {order.full_name}",
-        f"Contact: {order.phone}",
+        f"Full Name: {order.shipping_full_name}",
+        f"Contact: {order.shipping_phone}",
         f"Order ID: {order.id}",
         f"Order Date: {order.date_ordered.strftime('%B %d, %Y')}",
-        f"Payment Method: PayPal",
+        f"Payment Method: {order.payment_method}",
         f"Total Amount: ${order.amount_paid}",
     ]
     for detail in details:

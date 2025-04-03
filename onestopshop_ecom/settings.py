@@ -37,8 +37,10 @@ if environment == 'Production':
     DEBUG = False
 
 site_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '127.0.0.1')
-ALLOWED_HOSTS = [site_domain, 'localhost', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS = [f'https://{site_domain}', 'https://127.0.0.1']
+# ALLOWED_HOSTS = [site_domain, 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
+# CSRF_TRUSTED_ORIGINS = [f'https://{site_domain}', 'https://127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://obliging-mantis-cool.ngrok-free.app']
 
 INTERNAL_IPS = [
     '127.0.0.1',
@@ -59,6 +61,7 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
     'debug_toolbar',
     'django_celery_results',
+    'paypal.standard.ipn',
 ]
 
 MIDDLEWARE = [
@@ -178,3 +181,7 @@ CELERY_BROKER_URL = os.environ.get('REDIS_URL')
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_RESULT_EXTENDED = True
+
+# Paypal Settings
+PAYPAL_TEST = True # Set Sandbox to True
+PAYPAL_RECEIVER_EMAIL = 'business_@onestopshop.com' # Business Sandbox account email

@@ -32,7 +32,7 @@
                                     <td>{{ orders.start_index|add:forloop.counter0 }}</td>
                                     <td><a href="{% url 'orders' order.id %}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover">{{order.id}}</a></td>
                                     <td>${{order.amount_paid}}</td>
-                                    <td>{{order.email}}</td>
+                                    <td>{{order.shipping_email}}</td>
                                     <td>{{order.date_ordered}}</td>
                                     <td>
                                         <!-- as we are updating data in the DB we should use Form instead of '<a>'' tag because that passes data in GET request and doesn't account for CSRF issues -->

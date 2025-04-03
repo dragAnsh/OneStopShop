@@ -83,7 +83,7 @@
                                 <div class="row mb-3">
                                     <!-- Left Column -->
                                     <div class="col-md-8">
-                                        <p><strong>Payment Method:</strong> PayPal</p>
+                                        <p><strong>Payment Method:</strong> {{order.payment_method}}</p>
                                         <p><strong>Date Ordered:</strong> {{ order.date_ordered }}</p>
                                         {% if order.shipped %}
                                             <p><strong>Date Shipped:</strong> {{ order.date_shipped }}</p>

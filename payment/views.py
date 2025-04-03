@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from cart.cart import Cart
+from store.forms import UserInfoForm
 from store.models import Product, Profile
 from .forms import ShippingForm, PaymentForm
 from .models import ShippingAddress, Order, OrderItem
@@ -14,6 +15,10 @@ from django.db.models import Q, Prefetch
 from .utils import generate_invoice_pdf
 from .tasks import send_order_unshipped_email_task, send_order_confirmation_email_task, send_order_shipped_email_task
 from django.contrib.auth.models import User
+from django.urls import reverse
+from django.conf import settings
+import uuid # unique user id for orders
+from paypal.standard.forms import PayPalPaymentsForm
 
 
 def generate_invoice(request, order_id):
@@ -187,48 +192,24 @@ def not_yet_shipped_dashboard(request):
     else:
         messages.error(request, "ACCESS DENIED!")
         return redirect('home')
-   
 
-def process_order(request):
+
+def process_cod_order(request):
     if request.method=='POST':
         cart = Cart(request)
-        products = cart.get_products()
-        quantities = cart.get_quantities()
-        cart_total = cart.cart_total()
-
-        # Get Billing Info from last page
-        billing_form = PaymentForm(request.POST)
-
-        # Get Shipping Session Data
-        shipping_info = request.session.get('shipping_info')
-
-        # Gather Order Info
-        # Create Shipping Address Text from Session Info
-        include_fields = ("shipping_address1", "shipping_address2", "shipping_city", "shipping_state", "shipping_zipcode", "shipping_country")
-        shipping_address = "\n".join(shipping_info[field] for field in include_fields if shipping_info.get(field))
-
-        full_name = shipping_info['shipping_full_name']
-        email = shipping_info['shipping_email']
-        amount_paid = cart_total
         user = request.user if request.user.is_authenticated else None
-        phone = shipping_info['shipping_phone']
 
-        # Create an order
-        create_order = Order(user=user, full_name=full_name, phone=phone, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
-        create_order.save()
-
-        # Create Order Items
-        order_items = []
-        for product in products:
-            quantity = quantities.get(str(product.id), 1)
-            price = product.sale_price if product.on_sale else product.price
-            total_price = round(price * quantity, 2)
+        # fetch invoice id
+        invoice_id = request.POST['invoice_id']
             
-            create_order_item = OrderItem(order=create_order, product=product, user=user, quantity=quantity, price=price, total_price=total_price)
-            order_items.append(create_order_item)
-        
-        # Bulk Create to Optimize
-        OrderItem.objects.bulk_create(order_items)
+        # fetch Order
+        order = Order.objects.get(invoice_id=invoice_id)
+
+        # mark order status to Success
+        order.status = "Processed"
+        order.payment_method = "COD"
+        order.save()
+
         # Empty Shopping Cart From Session: Clear the cart dict from our 'cart' object
         cart.clear()
 
@@ -237,10 +218,10 @@ def process_order(request):
             Profile.objects.filter(user=user).update(old_cart="")
 
         # Send Order Confirmation Email: Use Celery as Distributed Task Queue and Redis as Message Broker 
-        send_order_confirmation_email_task.delay(create_order.id)
+        send_order_confirmation_email_task.delay(order.id)
 
         messages.success(request, "Order Placed!")
-        return redirect('home')
+        return redirect('user_orders_list', {'filter': 'all'})
     
     else:
         messages.error(request, "ACCESS DENIED!")
@@ -264,27 +245,83 @@ def billing_info(request):
 
         cart_total = cart.cart_total()
 
-        # Create a session with Shipping Info
-        shipping_info_session = request.POST
-        request.session['shipping_info'] = shipping_info_session
+        # Create a session with Shipping & Billing Info
+        user_info_session = request.POST
+        request.session['user_info'] = user_info_session
+
+        host = request.get_host() # current domain/host serving the request
+        invoice_id = str(uuid.uuid4())
+
+        # Create PayPalPaymentsForm and paypal_dict
+        paypal_dict = {
+            'business': settings.PAYPAL_RECEIVER_EMAIL,
+            'amount': cart_total,
+            'item_name': 'OneStopShop Order',
+            'no_shipping': 2, # don't use PayPal Account's shipping address
+            'invoice': invoice_id,
+            'currency_code': 'USD',
+            'notify_url': f'https://{host}{reverse("paypal-ipn")}',
+            'return': f'https://{host}/{reverse("payment_success")}',
+            'cancel_return': f'https://{host}{reverse("payment_failed", kwargs={'invoice_id': invoice_id})}',
+        }
+
+        # Create PayPal payments button
+        paypal_form = PayPalPaymentsForm(initial=paypal_dict)
+
+        # Create Order
+        # Create Shipping Address Text from Session Info
+        include_fields = ("shipping_address1", "shipping_address2", "shipping_city", "shipping_state", "shipping_zipcode", "shipping_country")
+        shipping_address = "\n".join(user_info_session[field] for field in include_fields if user_info_session.get(field))
+
+        shipping_full_name = user_info_session['shipping_full_name']
+        shipping_email = user_info_session['shipping_email']
+        billing_full_name = user_info_session['full_name']
+        billing_email = user_info_session['email']
+        amount_paid = cart_total
+        user = request.user if request.user.is_authenticated else None
+        shipping_phone = user_info_session['shipping_phone']
+        billing_phone = user_info_session['phone']
+
+        # Create Billing Address Text from Session Info
+        include_fields = ("address1", "address2", "city", "state", "zipcode", "country")
+        billing_address = "\n".join(user_info_session[field] for field in include_fields if user_info_session.get(field))
+
+        # Create an order
+        create_order = Order(user=user, shipping_full_name=shipping_full_name, shipping_phone=shipping_phone, shipping_email=shipping_email, billing_full_name=billing_full_name, billing_phone=billing_phone, billing_email=billing_email, shipping_address=shipping_address, billing_address=billing_address, amount_paid=amount_paid, status="Pending", invoice_id=invoice_id, payment_method="NA")
+        create_order.save()
+        # Create Order Items
+        order_items = []
+        for product in products:
+            quantity = quantities.get(str(product.id), 1)
+            price = product.sale_price if product.on_sale else product.price
+            total_price = round(price * quantity, 2)
+            
+            create_order_item = OrderItem(order=create_order, product=product, user=user, quantity=quantity, price=price, total_price=total_price)
+            order_items.append(create_order_item)
+        
+        # Bulk Create to Optimize
+        OrderItem.objects.bulk_create(order_items)
 
         if request.user.is_authenticated:
-            # Update the ShippingAddress for LoggedIn Users
+            # Update the ShippingAddress & BillingAddress(profile info) for LoggedIn Users
             shipping_user = ShippingAddress.objects.get(user=request.user)
             shipping_form = ShippingForm(request.POST, instance=shipping_user)
+
+            billing_user = Profile.objects.get(user=request.user)
+            billing_form = UserInfoForm(request.POST, instance=billing_user)
         else:
             # Create a ShippingAddress for Guest Users: We are creating a ShippingForm even if we are not saving the data in DB because we want to validate whatever data the Guest User is putting in as Shipping Info.
             shipping_form = ShippingForm(request.POST)
+            billing_form = UserInfoForm(request.POST)
 
-        if shipping_form.is_valid():
+        if shipping_form.is_valid() and billing_form.is_valid():
             # Check for valid form even if user is not logged in, just so they put correct data in.
             if request.user.is_authenticated:
                 # Save the form only if user is authenticated
                 shipping_form.save()
+                billing_form.save()
 
-            # Get the Billing Form
-            billing_form = PaymentForm()
-            return render(request, 'payment/billing_info.html', {'products': products, 'cart_total': cart_total, 'shipping_info': request.POST, 'billing_form': billing_form})
+            return render(request, 'payment/billing_info.html', {'products': products, 'cart_total': cart_total, 'shipping_info': request.POST, 'paypal_form': paypal_form, 'invoice_id': invoice_id})
         
         else:
             for error in list(shipping_form.errors.values()):
@@ -317,13 +354,20 @@ def checkout(request):
     if request.user.is_authenticated:
         # Checkout as LoggedIn User
         shipping_user = ShippingAddress.objects.get(user=request.user)
+        billing_user = Profile.objects.get(user=request.user)
 
         # If User has Email in their User Model then fetch it from there and prepopulate Shipping Form
         if shipping_user.shipping_email == '':
-            shipping_user.shipping_email = User.objects.get(username=request.user.username).email
+            email = User.objects.get(username=request.user.username).email
+            if email == '':
+                email = billing_user.email
 
+            shipping_user.shipping_email = email
+
+        billing_form = UserInfoForm(instance=billing_user)
         shipping_form = ShippingForm(instance=shipping_user)
-        return render(request, 'payment/checkout.html', {'products': products, 'cart_total': cart_total, 'shipping_form': shipping_form})
+        return render(request, 'payment/checkout.html', {'products': products, 'cart_total': cart_total, 'shipping_form': shipping_form, 'billing_form': billing_form})
+    
     else:
         # Checkout as Guest User
         if request.session.get('shipping_info'):
@@ -332,8 +376,32 @@ def checkout(request):
         else:
             # else create a empty form
             shipping_form = ShippingForm()
-        return render(request, 'payment/checkout.html', {'products': products, 'cart_total': cart_total, 'shipping_form': shipping_form})
+
+        if request.session.get('billing_info'):
+            # If shipping info exists in session then get it from there
+            billing_form = UserInfoForm(request.session['billing_info'])
+        else:
+            # else create a empty form
+            billing_form = UserInfoForm()
+
+        return render(request, 'payment/checkout.html', {'products': products, 'cart_total': cart_total, 'shipping_form': shipping_form, 'billing_form': billing_form})
 
 
 def payment_success(request):
+    cart = Cart(request)
+    # Empty Shopping Cart From Session: Clear the cart dict from our 'cart' object
+    cart.clear()
+
+    # Empty Shopping Cart From DB
+    if request.user.is_authenticated:
+        Profile.objects.filter(user=request.user).update(old_cart="")
+
+    messages.success(request, "Your order has been placed successfully!")
     return render(request, 'payment/payment_success.html', {})
+
+
+def payment_failed(request, invoice_id):
+    # Delete order if payment failed
+    Order.objects.filter(invoice_id=invoice_id).delete()
+    messages.success(request, "There Was an Error Completing Your Order")
+    return render(request, 'payment/payment_failed.html', {})

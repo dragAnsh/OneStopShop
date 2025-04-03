@@ -1,6 +1,49 @@
 {% extends 'store/base.html' %}
 
 {% block content %}
+<!-- FontAwesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        .payment-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 2px solid transparent;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .payment-option input {
+            margin-right: 10px;
+        }
+
+        .payment-option.selected {
+            background: #fff7e6;
+            border-color: #ff9900;
+        }
+
+        .payment-label {
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .paypal-payment-btn {
+            border: 2px solid #fff7e6;;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .paypal-payment-btn:hover {
+            background: #fff7e6;
+            border-color: #ff9900;
+            color: black;
+        }
+    </style>
+
     <!-- Header-->
     <header class="bg-dark py-5">
         <div class="container px-4 px-lg-5 my-5">
@@ -20,11 +63,10 @@
                 <!-- Shipping Info -->
                 <div class="card mb-3">
                     <div class="card-header">
-                        <strong>Shipping Info</strong>
+                        <strong>Delivering to {{shipping_info.shipping_full_name}}</strong>
                     </div>
                     <div class="card-body">
                         <strong>Phone:</strong> {{shipping_info.shipping_phone}} <br>
-                        <strong>Name:</strong> {{shipping_info.shipping_full_name}} <br>
                         <strong>Email:</strong> {{shipping_info.shipping_email}} <br>
                         <strong>Address 1:</strong> {{shipping_info.shipping_address1}} <br>
                         {% if shipping_info.shipping_address2 %}
@@ -42,22 +84,87 @@
                         <a href="{% url 'checkout' %}" class="btn btn-outline-secondary">Update Shipping Info</a>
                     </div>
                 </div>
-    
-                <!-- Billing Info -->
+
                 <div class="card mb-3">
+                    <div class="card-body">
+                        <strong>Payment Method</strong>
+                        <br><br>
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item payment-option" onclick="selectPayment(this)">
+                                        <input class="form-check-input" type="radio" name="payment" value="paypal">
+                                        <label class="payment-label">
+                                            <div class="d-flex flex-row mb-3 align-items-center">
+                                                <i class="fa-brands fa-paypal fa-3x me-3"></i>
+                                                <h6 class="me-4">PayPal</h6>
+                                            </div>
+                                        </label>
+                                    </li>
+
+                                    <br>
+                
+                                    <!-- <li class="list-group-item payment-option" onclick="selectPayment(this)">
+                                        <input class="form-check-input" type="radio" name="payment" value="stripe">
+                                        <label class="payment-label">
+                                            <div class="d-flex flex-row mb-3 align-items-center justify-content-between">
+                                                <i class="fa-brands fa-stripe fa-3x me-3"></i>
+                                                <h6 class="me-4">Stripe</h6>
+                                            </div>
+                                        </label>
+                                    </li>
+
+                                    <br> -->
+                
+                                    <li class="list-group-item payment-option selected" onclick="selectPayment(this)">
+                                        <input class="form-check-input" type="radio" name="payment" value="cod" checked>
+                                        <label class="payment-label">
+                                            <div class="d-flex flex-row mb-3 align-items-center">
+                                                <i class="fa-solid fa-money-bill fa-3x me-3"></i>
+                                                <h6 class="me-4">Cash on Delivery/Pay on Delivery</h6>
+                                            </div>
+                                        </label>
+                                    </li>
+
+                                    <br>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                        
+                <button id="use-payment-btn" class="btn btn-warning rounded-pill">Use this Payment Method</button>
+
+                <br><br>
+                <!-- Billing Info : Hidden Initially-->
+                <!-- <div class="card mb-3" id="billing-info" style="display: none;">
                     <div class="card-header">
                         <strong>Billing Info</strong>
                     </div>
                     <div class="card-body">
-                        <form action="{% url 'process_order' %}" method="post">
+                        <form action="{% url 'process_cod_order' %}" method="post">
                             {% csrf_token %}
                             {{billing_form.as_p}}
+                            <input type="hidden" name="invoice_id" value="{{invoice_id}}">
                     </div>
                 </div>
-                            <button type="submit" class="btn btn-success mb-2">PAY NOW</button>
-                        </form>
-            </div>
+                            <button type="submit" class="btn btn-success rounded-pill mb-2" style="display: none;" id="pay-now-btn">Place Order</button>
+                        </form> -->
 
+                <form action="{% url 'process_cod_order' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="invoice_id" value="{{invoice_id}}">
+                    <button type="submit" class="btn btn-success rounded-pill mb-2" style="display: none;" id="pay-now-btn">Place Order</button>
+                </form>
+
+                <!-- PayPal Form (Hidden initially) -->
+                <div id="paypal-form-container" class="card mb-3" style="display: none;">
+                    <div class="card-body">
+                        <strong class="me-2">Continue to PayPal</strong>
+                        <button class="btn rounded-pill paypal-payment-btn">{{ paypal_form.render }}</button>
+                    </div>
+                </div>
+            </div>
 
             <!-- Right Sidebar: Order Summary -->
             <div class="col-md-5">
@@ -91,5 +198,43 @@
             </div>
         </div>
     </div>
-    <br>
+
+    <br><br>
+
+    <script>
+        function selectPayment(element) {
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            element.querySelector("input").checked = true;
+        }
+    
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const usePaymentBtn = document.getElementById("use-payment-btn");
+            // const billingInfo = document.getElementById("billing-info");
+            const payNowBtn = document.getElementById("pay-now-btn");
+            const paypalFormContainer = document.getElementById("paypal-form-container");
+
+            usePaymentBtn.addEventListener("click", function () {
+                // Get selected payment method
+                const selectedPayment = document.querySelector("input[name='payment']:checked").value;
+
+                // Reset visibility
+                // billingInfo.style.display = "none";
+                payNowBtn.style.display = "none";
+                paypalFormContainer.style.display = "none";
+
+                if (selectedPayment === "paypal") {
+                    // Show PayPal button only
+                    paypalFormContainer.style.display = "block";
+                } else {
+                    // Show billing form and pay now button for COD and Stripe
+                    // billingInfo.style.display = "block";
+                    payNowBtn.style.display = "block";
+                }
+            });
+        });
+</script>
 {% endblock %}

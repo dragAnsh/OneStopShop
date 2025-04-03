@@ -1,4 +1,4 @@
-Hello {{ user_order.full_name }},
+Hello {{ user_order.shipping_full_name }},
 
 Your Order has been marked Unshipped but don't worry Your order will be Shipped soon.
 
