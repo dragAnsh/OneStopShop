@@ -122,3 +122,33 @@ def send_order_unshipped_email_task(user_order_id):
     msg.send()
     # To display result in Flower
     return f"Email sent to {user_shipping_email} and {user_billing_email}"
+
+
+@shared_task(name='user_registration_email')
+def send_user_registration_email_task(user_email, first_name):
+    """
+    Sends an email to User for Successful Registration on the site with an HTML template.
+    :param user_email: Email of User
+    :param first_name: First Name of User
+    """
+
+    subject = f"{first_name}, Succesfully Registered on OneStopShop"
+    text_content = render_to_string(
+        "emails/user_registration_mail.txt",
+        context={'user_email': user_email, 'first_name': first_name},
+    )
+    html_content = render_to_string(
+        "emails/user_registration_mail.html",
+        context={'user_email': user_email, 'first_name': first_name},
+    )
+    to = [user_email]
+    headers = {"List-Unsubscribe": "<mailto:updates.onestopshop@gmail.com>"}
+
+    msg = EmailMultiAlternatives(subject=subject, body=text_content, from_email=None, to=to, headers=headers)
+    msg.attach_alternative(html_content, "text/html")
+    msg.content_subtype = "html"
+
+    # Send Email
+    msg.send()
+    # To display result in Flower
+    return f"Email sent to {user_email}"

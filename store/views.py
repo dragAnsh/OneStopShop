@@ -11,6 +11,7 @@ from payment.models import ShippingAddress
 # from cart.models import UserCart
 import json
 from django.db.models import Exists, OuterRef
+from payment.tasks import send_user_registration_email_task
 
 
 def search(request):
@@ -213,6 +214,12 @@ def register_user(request):
 
             user = authenticate(username=username, password=password)
             login(request, user)
+
+            # Send Registration Email to User
+            user_email = form.cleaned_data['email']
+            first_name = form.cleaned_data['first_name']
+            send_user_registration_email_task.delay(user_email, first_name)
+
             messages.success(request, "Username Created- Please Fill Out The Info Below")
             return redirect('update_info')
         
