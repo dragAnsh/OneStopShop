@@ -259,7 +259,7 @@ def process_cod_order(request):
         send_order_confirmation_email_task.delay(create_order.id)
 
         messages.success(request, "Order Placed!")
-        return redirect('user_orders_list', {'filter': 'all'})
+        return render(request, 'payment/payment_success.html', {})
     
     else:
         messages.error(request, "ACCESS DENIED!")
