@@ -53,8 +53,9 @@ def update_info(request):
                 form.save()
                 messages.success(request, "Your Profile Info Has Been Updated, But There are some errors in Your Shipping Info!")
 
-                for error in list(shipping_form.errors.values()):
-                    messages.error(request, error)
+                for field, errors in shipping_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field[9:].replace('_', ' ').title()} in Shipping Information: {error}")
 
                 return redirect('update_info')
 
@@ -62,16 +63,21 @@ def update_info(request):
                 shipping_form.save()
                 messages.success(request, "Your Shipping Info Has Been Updated, But There are some errors in Your Profile Info!")
 
-                for error in list(form.errors.values()):
-                    messages.error(request, error)
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field.replace('_', ' ').title()} in Billing Information: {error}")
 
                 return redirect('update_info')
 
             else:
-                for error in list(form.errors.values()):
-                    messages.error(request, error)
-                for error in list(shipping_form.errors.values()):
-                    messages.error(request, error)
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field.replace('_', ' ').title()} in Billing Information: {error}")
+
+                for field, errors in shipping_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field[9:].replace('_', ' ').title()} in Shipping Information: {error}")
+
                 return redirect('update_info')
             
         else: # Handling GET requests

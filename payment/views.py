@@ -346,9 +346,16 @@ def billing_info(request):
             return render(request, 'payment/billing_info.html', {'products': products, 'cart_total': cart_total, 'shipping_info': request.POST, 'paypal_form': paypal_form, 'invoice_id': invoice_id})
         
         else:
-            for error in list(shipping_form.errors.values()):
-                messages.error(request, error)
-            return redirect('checkout')
+            for field, errors in shipping_form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field[9:].replace('_', ' ').title()} in Shipping Info: {error}")
+
+            for field, errors in billing_form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.replace('_', ' ').title()} in Billing Info: {error}")
+
+            # Render checkout instead of redirecting (to keep data and allowing users to edit)
+            return render(request, 'payment/checkout.html', {'products': products, 'cart_total': cart_total, 'shipping_form': shipping_form, 'billing_form': billing_form})
     
     else:
         messages.error(request, "ACCESS DENIED!")
