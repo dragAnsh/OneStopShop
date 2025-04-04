@@ -43,16 +43,41 @@ def generate_invoice_pdf(order_id):
         y_position -= 20
 
     # Shipping Address Section
-    y_position -= 30  # Space before address
+    # y_position -= 30  # Space before address
+    # p.setFont("Helvetica-Bold", 12)
+    # p.drawString(50, y_position, "Shipping Address:")
+    # p.setFont("Helvetica", 12)
+
+    # styles = getSampleStyleSheet()
+    # shipping_text = Paragraph(f"{order.shipping_address.replace('\n', '<br/>')}", styles["Normal"])
+    # shipping_text.wrapOn(p, 400, 200)
+    # shipping_text.drawOn(p, 50, y_position - 80)
+    # y_position -= 120
+
+
+    # Shipping & Billing Address Section
+    y_position -= 30  # Space before addresses
     p.setFont("Helvetica-Bold", 12)
     p.drawString(50, y_position, "Shipping Address:")
-    p.setFont("Helvetica", 12)
+    p.drawString(320, y_position, "Billing Address:")
 
+    p.setFont("Helvetica", 12)
     styles = getSampleStyleSheet()
+
+    # Format Shipping Address
     shipping_text = Paragraph(f"{order.shipping_address.replace('\n', '<br/>')}", styles["Normal"])
-    shipping_text.wrapOn(p, 400, 200)
+    shipping_text.wrapOn(p, 200, 200)  # Wrap within 200px width
     shipping_text.drawOn(p, 50, y_position - 80)
-    y_position -= 120
+
+    # Format Billing Address
+    billing_text = Paragraph(f"{order.billing_address.replace("\n", "<br/>")}", styles["Normal"])
+    billing_text.wrapOn(p, 200, 200)  # Wrap within 200px width
+    billing_text.drawOn(p, 320, y_position - 80)
+
+    y_position -= 120  # Move cursor down after addresses
+
+
+
 
     # Table Header & Data
     data = [["Product", "Qty", "Unit Price", "Total Price"]]
