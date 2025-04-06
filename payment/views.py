@@ -52,6 +52,36 @@ def repeat_order(request, order_id):
         return redirect('home')
 
 
+def review_submitted(request):
+    return render(request, 'payment/review_submitted.html', {})
+
+
+def review_product(request, order_id):
+    order = Order.objects.get(id=order_id)
+    is_reviewed = order.is_reviewed
+
+    if is_reviewed:
+        messages.success(request, "You Have Already Rated Items In This Order.")
+        return redirect('user_orders_list', {'filter': 'all'})
+    
+    if request.method=='POST':
+        for key in request.POST:
+            if key.startswith('rating_'):
+                product_id = key.split('_')[1]
+                rating = request.POST[key]
+                try:
+                    product = Product.objects.get(id=product_id)
+                    product.update_rating(rating)
+                except:
+                    continue
+        order.is_reviewed = True
+        order.save()
+        return redirect('review_submitted')
+    else:
+        products = Product.objects.filter(orderitem__order_id=order_id).distinct()
+        return render(request, 'payment/review_product.html', {'products': products})
+
+
 def user_order_item(request, pk):
     if request.user.is_authenticated:
         item = get_object_or_404(OrderItem, id=pk)

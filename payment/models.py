@@ -58,6 +58,7 @@ class Order(models.Model):
     date_shipped = models.DateTimeField(blank=True, null=True)
     invoice_id = models.CharField(max_length=36, blank=True)
     payment_method = models.CharField(max_length=6, choices=payment_method_choices)
+    is_reviewed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Order - {str(self.id)}"

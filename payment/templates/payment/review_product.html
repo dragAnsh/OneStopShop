@@ -1,0 +1,103 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Review Order</h1>
+            </div>
+        </div>
+    </header>
+    <br><br>
+
+    <form method="POST" action="">
+        {% csrf_token %}
+        <div class="container px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 row-cols-1 row-cols-md-1 row-cols-xl-2">
+                    {% for product in products %}
+                        <div class = "col mb-5">
+                            <div class="card mb-3">
+                                <div class="row g-0">
+                                    <div class="col-md-3">
+                                        <img src="{{product.image.url}}" class="img-fluid rounded-start" alt="{{product.name}}" loading="lazy">
+                                    </div>
+                                    <div class="col-md-9 text-center">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{product.name}}</h5>
+                                            <br>
+                                            <span class="display-6 text-warning">
+                                                {% for i in "12345" %}
+                                                    <i class="bi bi-star star" data-rating="{{ i }}" data-product-id="{{ product.id }}"></i>
+                                                {% endfor %}
+                                            </span>
+                                            <!-- Hidden input to capture selected rating -->
+                                            <input type="hidden" name="rating_{{ product.id }}" id="rating-input-{{ product.id }}" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-warning">Submit Ratings</button>
+        </div>
+    </form>
+    
+    <br>
+
+    <style>
+        .star {
+            cursor: pointer;
+            transition: color 0.5s ease;
+        }
+    </style>
+    
+    <!-- Star rating script -->
+    <script>
+        document.querySelectorAll('.star').forEach(star => {
+            const productId = star.dataset.productId;
+    
+            // On click - set the rating
+            star.addEventListener('click', function () {
+                const rating = this.dataset.rating;
+    
+                // Update hidden input
+                document.getElementById(`rating-input-${productId}`).value = rating;
+    
+                // Show selected rating
+                updateStars(productId, rating);
+            });
+    
+            // On hover - show preview
+            star.addEventListener('mouseenter', function () {
+                const hoverRating = this.dataset.rating;
+                updateStars(productId, hoverRating);
+            });
+    
+            // On mouse leave from the whole star group, restore selected
+            star.closest('.card-body').addEventListener('mouseleave', function () {
+                const selectedRating = document.getElementById(`rating-input-${productId}`).value;
+                updateStars(productId, selectedRating);
+            });
+        });
+    
+        function updateStars(productId, rating) {
+            document.querySelectorAll(`.star[data-product-id="${productId}"]`).forEach(star => {
+                const starRating = star.dataset.rating;
+                if (starRating <= rating) {
+                    star.classList.remove('bi-star');
+                    star.classList.add('bi-star-fill');
+                } else {
+                    star.classList.add('bi-star');
+                    star.classList.remove('bi-star-fill');
+                }
+            });
+        }
+    </script>
+    
+    
+{% endblock %}

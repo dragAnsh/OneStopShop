@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import SignUpForm, UpdateUserForm, UpdatePasswordForm, UserInfoForm
 from payment.forms import ShippingForm
-from django.db.models import Q
+from django.db.models import Q, F, DecimalField, Case, When
 from cart.cart import Cart
 from cart.saved_items import SavedItems
 from payment.models import ShippingAddress
@@ -12,22 +12,74 @@ from payment.models import ShippingAddress
 import json
 from django.db.models import Exists, OuterRef
 from payment.tasks import send_user_registration_email_task
+from django.core.paginator import Paginator
 
 
 def search(request):
-    # Determine if they filled out the form
-    if request.method=='POST':
-        search_text = request.POST['search_text']
+    # Use GET for search so that you have a sharable URL
+    if request.method=='GET':
+        search_text = request.GET.get('search_text', '').strip()
+        price_filter = request.GET.get('price_filter', '')
+        sale_filter = request.GET.get('sale_filter', '')
+        rating_filter = request.GET.get('rating_filter', '4')
 
-        # Query the Product DB
-        # Q makes Django queries flexible and powerful. Internally, it constructs SQL WHERE clauses dynamically.
-        search_result = Product.objects.filter(Q(name__icontains=search_text) | Q(description__icontains=search_text)) # Normally, Django queries are AND-based by default. With Q, we can use | (OR), & (AND), and ~ (NOT).
+        if not search_text:
+            return render(request, 'store/search.html')
+
+        query = Q() # Q makes Django queries flexible and powerful. Internally, it constructs SQL WHERE clauses dynamically. Normally, Django queries are AND-based by default. With Q, we can use | (OR), & (AND), and ~ (NOT).
+
+        if search_text:
+            query &= Q(name__icontains=search_text) | Q(description__icontains=search_text) | Q(category__name__icontains=search_text)
+
+        if price_filter:
+            if price_filter == 'under_10':
+                query &= Q(final_price__lt=10)
+            elif price_filter == '10_50':
+                query &= Q(final_price__gte=10, final_price__lte=50)
+            elif price_filter == '50_100':
+                query &= Q(final_price__gte=50, final_price__lte=100)
+            elif price_filter == 'over_100':
+                query &= Q(final_price__gt=100)
+
+        if sale_filter:
+            if sale_filter == 'on_sale':
+                query &= Q(on_sale=True)
+            else:
+                query &= Q(on_sale=False)
+
+        if rating_filter:
+            if rating_filter == '1_and_up':
+                query &= Q(average_rating__gte=1)
+            if rating_filter == '2_and_up':
+                query &= Q(average_rating__gte=2)
+            if rating_filter == '3_and_up':
+                query &= Q(average_rating__gte=3)
+            if rating_filter == '4_and_up':
+                query &= Q(average_rating__gte=4)
+            if rating_filter == '5_and_up':
+                query &= Q(average_rating__gte=5)
+
+        products = Product.objects.annotate(
+            final_price=Case(
+                When(on_sale=True, then=F('sale_price')),
+                default=F('price'),
+                output_field=DecimalField()
+            )
+        )
+
+        search_result = products.filter(query)
+
         # Test for Null
-        if not search_result:
-            messages.success(request, "Requested Product Does Not Exist. Please Try Again Later!")
-            return render(request, 'store/search.html', {})
+        if not search_result.exists():
+            messages.success(request, "No Products Found. Please Try Again Later!")
+            return render(request, 'store/search.html', {'search_text': search_text, 'price_filter': price_filter, 'sale_filter': sale_filter, 'rating_filter': rating_filter})
+        
+        # Pagination: Show 5 orders per page
+        paginator = Paginator(search_result, 8)
+        page_number = request.GET.get("page")
+        page_search = paginator.get_page(page_number)
 
-        return render(request, 'store/search.html', {'search_result': search_result})
+        return render(request, 'store/search.html', {'search_result': page_search, 'search_text': search_text, 'price_filter': price_filter, 'sale_filter': sale_filter, 'rating_filter': rating_filter})
     else:
         return render(request, 'store/search.html', {})
 

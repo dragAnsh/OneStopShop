@@ -1,0 +1,44 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Review Done</h1>
+            </div>
+        </div>
+    </header>
+    <br><br>
+
+    <!-- 5seconds Countdown for the Page to Redirect -->
+    <div id="countdown" style="text-align: center; font-weight: bold; margin-bottom: 20px; color: rgba(0, 106, 255, 0.501); font-size: 24px;"></div>
+
+    <div class="text-center">
+        <span class="text-success"><h4><i class="bi bi-check-circle-fill me-3"></i>Review Submitted</h4></span>
+        <br>
+        <h6>Awesome! Thank you for helping other shoppers!</h6>
+    </div>
+
+
+    <script>        
+        let countdownTime = 5; // 5 seconds
+        
+        function updateCountdown() {
+            let minutes = Math.floor(countdownTime / 60);
+            let seconds = countdownTime % 60;
+            document.getElementById("countdown").textContent = `Redirecting You to Orders Page In ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            
+            if (countdownTime <= 0) {
+                window.location.href = "{% url 'user_orders_list' 'all' %}";
+            } else {
+                countdownTime--;
+                setTimeout(updateCountdown, 1000); // Update every second
+            }
+        }
+        
+        updateCountdown();
+    </script>
+
+    
+{% endblock %}

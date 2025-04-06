@@ -11,80 +11,216 @@
         </div>
     </header>
     <br><br>
-    <div class="container">
-        <div class="row">
-            <center>
-                <div class="col-10">
-                    <div class="card">
-                        <div class="card-header">
-                            Search Products
+    <div class="container mt-4">
+
+        <div class="card">
+            <div class="card-header text-center fw-bold fs-5">
+                Search Products
+            </div>
+            <div class="card-body">
+                <form action="{% url 'search' %}" method="get">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" placeholder="Search for Products" name="search_text" value="{{ search_text }}">
                         </div>
-                        <div class="card-body">
-                            <form action="{% url 'search' %}" method="post">
-                                {% csrf_token %}
-                                <div class="mb-3">
-                                    <input type="text" class="form-control" placeholder="Search for Products" name="search_text">
-                                </div>
-                                <button type="submit" class="btn btn-secondary">Search Products</button>
-                            </form>
+
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-dark w-100">Search</button>
                         </div>
                     </div>
+                </form>
+            </div>
+        </div>
 
+        <br><br>
 
-                    {% if search_result %}
-                        <div class="container px-4 px-lg-5 mt-5">
-                            <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-                
-                                {% for product in search_result %}
-                                    <div class = "col mb-5">
-                                        <div class="card h-100">
+        {% if search_text %}
+            <div class="row">
+                <!-- LEFT: Filters -->
+                <div class="col-md-2">
+            
+                    <!-- PRICE FILTER -->
+                    <h5>Price</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="?search_text={{ search_text }}&price_filter=under_10&rating_filter={{ rating_filter }}&sale_filter={{ sale_filter }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover{% if request.GET.price_filter == 'under_10' %} link-secondary {% endif %}">
+                                Under $10
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="?search_text={{ search_text }}&price_filter=10_50&rating_filter={{ rating_filter }}&sale_filter={{ sale_filter }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover{% if request.GET.price_filter == '10_50' %} link-secondary {% endif %}">
+                                $10 - $50
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="?search_text={{ search_text }}&price_filter=50_100&rating_filter={{ rating_filter }}&sale_filter={{ sale_filter }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover{% if request.GET.price_filter == '50_100' %} link-secondary {% endif %}">
+                                $50 - $100
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="?search_text={{ search_text }}&price_filter=over_100&rating_filter={{ rating_filter }}&sale_filter={{ sale_filter }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover{% if request.GET.price_filter == 'over_100' %} link-secondary {% endif %}">
+                                Over $100
+                            </a>
+                        </li>
+                        <!-- clear Price filter -->
+                        <li class="mb-2">
+                            <a href="?search_text={{ search_text }}&rating_filter={{ rating_filter }}&sale_filter={{ sale_filter }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover link-danger">
+                                Clear Filter
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- RATING FILTER -->
+                    <h5>Ratings</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            {% for stars_upto in "12345" %}
+                                {% if stars_upto <= rating_filter %}
+                                    <a href="?search_text={{ search_text }}&price_filter={{ price_filter }}&rating_filter={{ stars_upto }}_and_up&sale_filter={{ sale_filter }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover">
+                                        <span class="text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                        </span>
+                                    </a>
+                                {% else %}
+                                    <a href="?search_text={{ search_text }}&price_filter={{ price_filter }}&rating_filter={{ stars_upto }}_and_up&sale_filter={{ sale_filter }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover">
+                                        <span class="text-warning">
+                                            <i class="bi bi-star"></i>
+                                        </span>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </li>
+                        <!-- clear Rating filter -->
+                        <li class="mb-2">
+                            <a href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover link-danger">
+                                Clear Filter
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- SALE FILTER -->
+                    <h5>Sale</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="?search_text={{ search_text }}&price_filter={{ price_filter }}&rating_filter={{ rating_filter }}&sale_filter=on_sale" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover{% if request.GET.sale_filter == 'on_sale' %} link-secondary {% endif %}">
+                                On Sale
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="?search_text={{ search_text }}&price_filter={{ price_filter }}&rating_filter={{ rating_filter }}&sale_filter=regular_price" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover{% if request.GET.sale_filter == 'regular_price' %} link-secondary {% endif %}">
+                                Regular
+                            </a>
+                        </li>
+                        <!-- clear sale filter -->
+                        <li class="mb-2">
+                            <a href="?search_text={{ search_text }}&price_filter={{ price_filter }}&rating_filter={{ rating_filter }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover link-danger">
+                                Clear Filter
+                            </a>
+                        </li>
+                    </ul>
+
+                    <br>
+
+                    <!-- Clear All Filters -->
+                    <h6>Clear Filters</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="?search_text={{ search_text }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover link-danger">
+                                Clear All Filters
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+
+                <!-- RIGHT: Products -->
+                <div class="col-md-10 px-4 px-lg-5">
+                    <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                        {% for product in search_result %}
+                            <div class = "col mb-5">
+                                <div class="card h-100">
+                                    {% if product.on_sale %}
+                                        <!-- Sale badge-->
+                                        <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">Sale</div>
+                                    {% endif %}
+                                    <!-- Product image-->
+                                    <img class="card-img-top img-fluid rounded-start" src="{{product.image.url}}" alt="..." loading="lazy"/>
+                                    <!-- Product details -->
+                                    <div class="card-body p-4">
+                                        <div class="text-center">
+                                            <!-- Product name-->
+                                            <h5 class="fw-bolder">{{product.name}}</h5>
+                                            <!-- Product price -->
                                             {% if product.on_sale %}
-                                                <!-- Sale badge-->
-                                                <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">Sale</div>
-                                            {% endif %}
-                                            <!-- Product image-->
-                                            <img class="card-img-top" src="{{product.image.url}}" alt="..." loading="lazy"/>
-                                            <!-- Product details -->
-                                            <div class="card-body p-4">
-                                                <div class="text-center">
-                                                    <!-- Product name-->
-                                                    <h5 class="fw-bolder">{{product.name}}</h5>
-                                                    <!-- Product price -->
-                                                    {% if product.on_sale %}
-                
-                                                        <div class="d-flex justify-content-center small text-warning mb-2">
-                                                            <div class="bi-star-fill"></div>
-                                                            <div class="bi-star-fill"></div>
-                                                            <!-- <div class="bi-star-fill"></div> -->
-                                                            &nbsp;&nbsp; SALE!!! &nbsp;&nbsp;
-                                                            <div class="bi-star-fill"></div>
-                                                            <div class="bi-star-fill"></div>
-                                                        </div>
-                
-                                                        <span class="text-muted text-decoration-line-through">${{product.price}}</span>
-                                                        ${{product.sale_price}}
-                                            
-                                                    {% else %}
-                
-                                                        ${{product.price}}
-                
-                                                    {% endif %}
-                                                    <br>
+
+                                                <div class="d-flex justify-content-center small text-warning mb-2">
+                                                <div class="bi-star-fill"></div>
+                                                <div class="bi-star-fill"></div>
+                                                &nbsp;&nbsp; SALE!!! &nbsp;&nbsp;
+                                                <div class="bi-star-fill"></div>
+                                                <div class="bi-star-fill"></div>
                                                 </div>
-                                            </div>
-                                            <!-- Product actions-->
-                                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="{% url 'product' product.id %}">View Product</a></div>
-                                            </div>
+
+                                                <span class="text-muted text-decoration-line-through">${{product.price}}</span>
+                                                <h4 class="text-success">${{product.sale_price}}</h4>
+
+                                            {% else %}
+                                                <h4 class="text-success">${{product.price}}</h4>
+                                            {% endif %}
+                                            <br>
                                         </div>
                                     </div>
-                                {% endfor %}
-                
+                                    <!-- Product actions-->
+                                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                                        <div class="text-center">
+                                            <a class="btn btn-outline-dark mt-auto" href="{% url 'product' product.id %}">
+                                                View Product
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Pagination Links -->
+                    <nav aria-label="Search Result pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if search_result.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page=1">
+                                        First
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page={{ search_result.previous_page_number }}">
+                                        Previous
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    Page {{ search_result.number }} of {{ search_result.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if search_result.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page={{ search_result.next_page_number }}">
+                                        Next
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page={{ search_result.paginator.num_pages }}">
+                                        Last
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
                 </div>
-            </center>
-        </div>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
