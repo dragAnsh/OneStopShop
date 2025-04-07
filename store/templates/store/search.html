@@ -1,46 +1,14 @@
 {% extends 'store/base.html' %}
 
 {% block content %}
-    <!-- Header-->
-    <header class="bg-dark py-5">
-        <div class="container px-4 px-lg-5 my-5">
-            <div class="text-center text-white">
-                <h1 class="display-4 fw-bolder">Search Products</h1>
-                <p class="lead fw-normal text-white-50 mb-0">Find the Product You're Looking For</p>
-            </div>
-        </div>
-    </header>
-    <br><br>
     <div class="container mt-4">
-
-        <div class="card">
-            <div class="card-header text-center fw-bold fs-5">
-                Search Products
-            </div>
-            <div class="card-body">
-                <form action="{% url 'search' %}" method="get">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-md-10">
-                            <input type="text" class="form-control" placeholder="Search for Products" name="search_text" value="{{ search_text }}">
-                        </div>
-
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-dark w-100">Search</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-
         <br><br>
-
         {% if search_text %}
             <div class="row">
                 <!-- LEFT: Filters -->
-                <div class="col-md-2 bg-light">
-                    <br>
+                <div class="col-md-2 bg-light rounded">
                     <!-- PRICE FILTER -->
-                    <h5>Price</h5>
+                    <h5 class="mt-2">Price</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2">
                             <a href="?search_text={{ search_text }}&price_filter=under_10&rating_filter={{ rating_filter }}&sale_filter={{ sale_filter }}" class="link-offset-2 link-offset-3-hover link-opacity-75-hover link-underline-dark link-underline-opacity-0 link-underline-opacity-75-hover{% if request.GET.price_filter == 'under_10' %} link-secondary {% endif %}">
@@ -135,7 +103,7 @@
 
                 <!-- RIGHT: Products -->
                 <div class="col-md-10 px-4 px-lg-5">
-                    <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                    <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4">
                         {% for product in search_result %}
                             <div class = "col mb-5">
                                 <div class="card h-100">

@@ -22,10 +22,10 @@ def search(request):
         search_text = request.GET.get('search_text', '').strip()
         price_filter = request.GET.get('price_filter', '')
         sale_filter = request.GET.get('sale_filter', '')
-        rating_filter = request.GET.get('rating_filter', '4_and_up')
+        rating_filter = request.GET.get('rating_filter', '1_and_up')
 
         if not search_text:
-            return render(request, 'store/search.html')
+            return redirect('home')
 
         query = Q() # Q makes Django queries flexible and powerful. Internally, it constructs SQL WHERE clauses dynamically. Normally, Django queries are AND-based by default. With Q, we can use | (OR), & (AND), and ~ (NOT).
 
