@@ -13,6 +13,7 @@ import json
 from django.db.models import Exists, OuterRef
 from payment.tasks import send_user_registration_email_task
 from django.core.paginator import Paginator
+from .utils import get_rating_stats
 
 
 def search(request):
@@ -21,7 +22,7 @@ def search(request):
         search_text = request.GET.get('search_text', '').strip()
         price_filter = request.GET.get('price_filter', '')
         sale_filter = request.GET.get('sale_filter', '')
-        rating_filter = request.GET.get('rating_filter', '4')
+        rating_filter = request.GET.get('rating_filter', '4_and_up')
 
         if not search_text:
             return render(request, 'store/search.html')
@@ -292,7 +293,8 @@ def register_user(request):
 
 def product(request, pk):
     product = Product.objects.get(id=pk)
-    return render(request, 'store/product.html', {'product': product})
+    rating_percentages = get_rating_stats(product)['rating_percentages']
+    return render(request, 'store/product.html', {'product': product, 'rating_percentages': rating_percentages})
 
 
 def category(request, cat):

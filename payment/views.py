@@ -56,12 +56,17 @@ def review_submitted(request):
     return render(request, 'payment/review_submitted.html', {})
 
 
-def review_product(request, order_id):
+def rate_orderitems(request, order_id):
     order = Order.objects.get(id=order_id)
     is_reviewed = order.is_reviewed
+    is_shipped = order.shipped
 
     if is_reviewed:
         messages.success(request, "You Have Already Rated Items In This Order.")
+        return redirect('user_orders_list', {'filter': 'all'})
+    
+    if not is_shipped:
+        messages.success(request, "Please Wait For Your Order To Be Shipped, Before Rating It.")
         return redirect('user_orders_list', {'filter': 'all'})
     
     if request.method=='POST':
@@ -79,7 +84,7 @@ def review_product(request, order_id):
         return redirect('review_submitted')
     else:
         products = Product.objects.filter(orderitem__order_id=order_id).distinct()
-        return render(request, 'payment/review_product.html', {'products': products})
+        return render(request, 'payment/rate_orderitems.html', {'products': products})
 
 
 def user_order_item(request, pk):

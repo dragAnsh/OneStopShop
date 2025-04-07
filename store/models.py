@@ -61,15 +61,38 @@ class Product(models.Model):
     image = CloudinaryField('image')
     on_sale = models.BooleanField(default=False)
     sale_price = models.DecimalField(default=0, decimal_places=2, max_digits=6)
-    average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=5.00)
+    average_rating = models.DecimalField(max_digits=3, decimal_places=1, default=5.0)
     total_people_rated = models.PositiveIntegerField(default=0)
     total_ratings_sum = models.PositiveIntegerField(default=0)
+    rating_1_count = models.PositiveIntegerField(default=0)
+    rating_2_count = models.PositiveIntegerField(default=0)
+    rating_3_count = models.PositiveIntegerField(default=0)
+    rating_4_count = models.PositiveIntegerField(default=0)
+    rating_5_count = models.PositiveIntegerField(default=0)
 
     def update_rating(self, user_rating):
         self.total_ratings_sum += int(user_rating)
         self.total_people_rated += 1
-        self.average_rating = round(self.total_ratings_sum / self.total_people_rated, 2)
+
+        if int(user_rating) == 1: self.rating_1_count += 1
+        elif int(user_rating) == 2: self.rating_2_count += 1
+        elif int(user_rating) == 3: self.rating_3_count += 1
+        elif int(user_rating) == 4: self.rating_4_count += 1
+        elif int(user_rating) == 5: self.rating_5_count += 1
+
+        self.average_rating = round(self.total_ratings_sum / self.total_people_rated, 1)
         self.save()
+    
+    def get_rating_breakdown(self):
+        return {
+            '1': self.rating_1_count,
+            '2': self.rating_2_count,
+            '3': self.rating_3_count,
+            '4': self.rating_4_count,
+            '5': self.rating_5_count,
+            'total': self.total_people_rated,
+            'average': float(self.average_rating),
+        }
 
     def __str__(self):
         return self.name

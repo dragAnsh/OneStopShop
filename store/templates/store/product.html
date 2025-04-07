@@ -1,5 +1,5 @@
 {% extends 'store/base.html' %}
-
+{% load star_ratings %}
 {% block content %}
     <br><br>
     <div class="container my-5">
@@ -59,6 +59,31 @@
                             <i class="bi-heart-fill me-1"></i>
                             Save Item
                         </button>
+
+                        <!-- Add Product Rating and PopOver to get detailed view of user ratings for a product -->
+                        <div class="position-absolute" id="ratingPopover" style="top: 6rem; right: 0.5rem" data-bs-trigger="hover focus" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-html="true"
+                            data-bs-content='
+                            <strong>{{product.average_rating}} out of 5 Stars</strong> <br>
+                            <span class="text-muted">Total: {{ product.total_people_rated }} ratings</span>
+                            <hr>
+                            <strong>5 star: </strong> {{ rating_percentages.5 }}%<br>
+                            <strong>4 star: </strong> {{ rating_percentages.4 }}%<br>
+                            <strong>3 star: </strong> {{ rating_percentages.3 }}%<br>
+                            <strong>2 star: </strong> {{ rating_percentages.2 }}%<br>
+                            <strong>1 star: </strong> {{ rating_percentages.1 }}%<br>
+                            '>
+                            {{product.average_rating}}
+                            {% for star_no in "12345" %}
+                                {% if product.average_rating|star_type:star_no == "full" %}
+                                    <i class="text-warning bi bi-star-fill"></i>
+                                {% elif product.average_rating|star_type:star_no == "half" %}
+                                    <i class="text-warning bi bi-star-half"></i>
+                                {% else %}
+                                    <i class="text-warning bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <i class="bi bi-chevron-down btn btn-sm"></i>
+                        </div>
                     </center>
                 </div>
             </div>
@@ -126,5 +151,12 @@
                 }
             });
         })
+        // Initialize Popovers
+        document.addEventListener('DOMContentLoaded', function () {
+            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl);
+            });
+        });
     </script>
 {% endblock %}

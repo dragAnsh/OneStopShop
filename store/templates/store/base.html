@@ -22,30 +22,33 @@
     </head>
     <body class="d-flex flex-column min-vh-100">
         
-        {% include 'store/navbar.html' %}
+        <!-- Sticky Wrapper: Make NavBar and Messages Stick to Top -->
+        <div style="position: sticky; top: 0; z-index: 1030;">
+            {% include 'store/navbar.html' %}
 
-        <!-- {% if messages %}
-            {% for message in messages %}
+            <!-- {% if messages %}
+                {% for message in messages %}
 
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <strong>{{message}}</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>{{message}}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                {% endfor %}
+            {% endif %} -->
+
+            {% if messages %}
+                <div class="container-fluid p-0">
+                    {% for message in messages %}
+                        <div class="alert alert-warning alert-dismissible fade show text-center mb-0" role="alert" 
+                            style="border-radius: 0; font-weight: bold;">
+                            {{ message }}
+                            <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
                 </div>
-
-            {% endfor %}
-        {% endif %} -->
-
-{% if messages %}
-    <div class="container-fluid p-0">
-        {% for message in messages %}
-            <div class="alert alert-warning alert-dismissible fade show text-center mb-0" role="alert" 
-                style="border-radius: 0; font-weight: bold;">
-                {{ message }}
-                <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    </div>
-{% endif %}
+            {% endif %}
+        </div>
 
 
 

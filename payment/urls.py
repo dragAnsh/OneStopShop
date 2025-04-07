@@ -19,7 +19,7 @@ urlpatterns = [
     path('user_order_item/<int:pk>/', views.user_order_item, name = 'user_order_item'),
     path('repeat_order/<int:order_id>/', views.repeat_order, name = 'repeat_order'),
     path('generate_invoice/<int:order_id>/', views.generate_invoice, name = 'generate_invoice'),
-    path('review_product/<int:order_id>/', views.review_product, name = 'review_product'),
+    path('rate_orderitems/<int:order_id>/', views.rate_orderitems, name = 'rate_orderitems'),
     path('review_submitted/', views.review_submitted, name = 'review_submitted'),
     path('paypal/', include('paypal.standard.ipn.urls')),
 ]

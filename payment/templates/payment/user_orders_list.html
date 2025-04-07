@@ -101,8 +101,8 @@
                                 <center>
                                     <a href="{% url 'generate_invoice' order.id %}" class="btn btn-primary me-3">Generate Invoice</a>
                                     <a href="{% url 'repeat_order' order.id %}" class="btn btn-warning me-3">Repeat Order</a>
-                                    {% if not order.is_reviewed %}
-                                        <a href="{% url 'review_product' order.id %}" class="btn btn-light me-3">Rate Items</a>
+                                    {% if not order.is_reviewed and order.shipped %}
+                                        <a href="{% url 'rate_orderitems' order.id %}" class="btn btn-light me-3">Rate Items</a>
                                     {% endif %}
                                 </center>
                             </div>
