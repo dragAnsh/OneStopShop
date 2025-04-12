@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'django_celery_results',
     'paypal.standard.ipn',
+    'django_elasticsearch_dsl',
 ]
 
 MIDDLEWARE = [
@@ -190,6 +191,13 @@ PAYPAL_RECEIVER_EMAIL = 'business_@onestopshop.com' # Business Sandbox account e
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://localhost:6379/0",
+        "LOCATION": "redis://redis:6379/0",
+    }
+}
+
+# ElasticSearch
+ELASTICSEARCH_DSL={
+    'default': {
+        'hosts': 'localhost:9200'
     }
 }

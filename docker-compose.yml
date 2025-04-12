@@ -1,0 +1,78 @@
+name: onestopshop_ecom
+
+services:
+  web:
+    build: .
+    image: onestopshop_ecom
+    container_name: onestopshop_ecom_app
+    ports:
+      - 8000:8000
+    command: /app/entrypoint.sh
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
+    env_file:
+      - .env
+
+  db:
+    image: postgres
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - 5434:5432 # to avoid conflicts with local DB instances
+    volumes:
+      - postgres_onestopshop:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s   
+    env_file:
+      - .env
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    volumes:
+      - redis_onestopshop:/data
+
+  celery:
+    image: onestopshop_ecom
+    container_name: onestopshop_ecom_celery
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    command: celery -A onestopshop_ecom worker -E -l info
+    depends_on:
+      - db
+      - redis
+      - web
+
+  flower:
+    image: onestopshop_ecom
+    container_name: onestopshop_ecom_flower
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    command: celery -A onestopshop_ecom flower
+    ports:
+      - 5555:5555
+    depends_on:
+      - db
+      - redis
+      - web
+      - celery
+
+volumes:
+  postgres_onestopshop:
+  redis_onestopshop:
