@@ -104,64 +104,77 @@
                 <!-- RIGHT: Products -->
                 <div class="col-md-10 px-4 px-lg-5">
                     <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4">
-                        {% for product in search_result %}
-                            <div class = "col mb-5">
-                                <div class="card h-100">
-                                    {% if product.on_sale %}
-                                        <!-- Sale badge-->
-                                        <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">Sale</div>
-                                    {% endif %}
-                                    <!-- Product image-->
-                                    <img class="card-img-top img-fluid rounded-start" src="{{product.image.url}}" alt="..." loading="lazy"/>
-                                    <!-- Product details -->
-                                    <div class="card-body p-4">
-                                        <div class="text-center">
-                                            <!-- Product name-->
-                                            <h5 class="fw-bolder">{{product.name}}</h5>
-                                            <!-- Product price -->
-                                            {% if product.on_sale %}
+                        {% if total_pages == 0 %}
 
-                                                <div class="d-flex justify-content-center small text-warning mb-2">
-                                                <div class="bi-star-fill"></div>
-                                                <div class="bi-star-fill"></div>
-                                                &nbsp;&nbsp; SALE!!! &nbsp;&nbsp;
-                                                <div class="bi-star-fill"></div>
-                                                <div class="bi-star-fill"></div>
-                                                </div>
+                            <div class="d-flex justify-content-center align-items-center w-100" style="min-height: 60vh;">
+                                <div class="text-center">
+                                    <h2>No Products Found!</h2>
+                                    <p>Please try again later or search for something else.</p>
+                                </div>
+                            </div>                            
+                        
+                        {% else %}
 
-                                                <span class="text-muted text-decoration-line-through">${{product.price}}</span>
-                                                <h4 class="text-success">${{product.sale_price}}</h4>
+                            {% for product in search_result %}
+                                <div class = "col mb-5">
+                                    <div class="card h-100">
+                                        {% if product.on_sale %}
+                                            <!-- Sale badge-->
+                                            <div class="badge bg-dark text-white position-absolute" style="top: 0.5rem; right: 0.5rem">Sale</div>
+                                        {% endif %}
+                                        <!-- Product image-->
+                                        <img class="card-img-top img-fluid rounded-start" src="{{product.image.url}}" alt="..." loading="lazy"/>
+                                        <!-- Product details -->
+                                        <div class="card-body p-4">
+                                            <div class="text-center">
+                                                <!-- Product name-->
+                                                <h5 class="fw-bolder">{{product.name}}</h5>
+                                                <!-- Product price -->
+                                                {% if product.on_sale %}
 
-                                            {% else %}
-                                                <h4 class="text-success">${{product.price}}</h4>
-                                            {% endif %}
-                                            <br>
+                                                    <div class="d-flex justify-content-center small text-warning mb-2">
+                                                    <div class="bi-star-fill"></div>
+                                                    <div class="bi-star-fill"></div>
+                                                    &nbsp;&nbsp; SALE!!! &nbsp;&nbsp;
+                                                    <div class="bi-star-fill"></div>
+                                                    <div class="bi-star-fill"></div>
+                                                    </div>
+
+                                                    <span class="text-muted text-decoration-line-through">${{product.price}}</span>
+                                                    <h4 class="text-success">${{product.sale_price}}</h4>
+
+                                                {% else %}
+                                                    <h4 class="text-success">${{product.price}}</h4>
+                                                {% endif %}
+                                                <br>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <!-- Product actions-->
-                                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                        <div class="text-center">
-                                            <a class="btn btn-outline-dark mt-auto" href="{% url 'product' product.id %}">
-                                                View Product
-                                            </a>
+                                        <!-- Product actions-->
+                                        <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                                            <div class="text-center">
+                                                <a class="btn btn-outline-dark mt-auto" href="{% url 'product' product.id %}">
+                                                    View Product
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        {% endfor %}
+                            {% endfor %}
+
+                        {% endif %}
                     </div>
 
                     <!-- Pagination Links -->
                     <nav aria-label="Search Result pagination">
                         <ul class="pagination justify-content-center">
-                            {% if search_result.has_previous %}
+                            {% if current_page > 1 %}
                                 <li class="page-item">
                                     <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page=1">
                                         First
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page={{ search_result.previous_page_number }}">
+                                    <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page={{ current_page|add:'-1' }}">
                                         Previous
                                     </a>
                                 </li>
@@ -169,18 +182,18 @@
 
                             <li class="page-item disabled">
                                 <span class="page-link">
-                                    Page {{ search_result.number }} of {{ search_result.paginator.num_pages }}
+                                    Page {{ current_page }} of {{ total_pages }}
                                 </span>
                             </li>
 
-                            {% if search_result.has_next %}
+                            {% if current_page < total_pages %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page={{ search_result.next_page_number }}">
+                                    <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page={{ current_page|add:'1' }}">
                                         Next
                                     </a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page={{ search_result.paginator.num_pages }}">
+                                    <a class="page-link" href="?search_text={{ search_text }}&price_filter={{ price_filter }}&sale_filter={{ sale_filter }}&rating_filter={{ rating_filter }}&page={{ total_pages }}">
                                         Last
                                     </a>
                                 </li>

@@ -198,6 +198,6 @@ CACHES = {
 # ElasticSearch
 ELASTICSEARCH_DSL={
     'default': {
-        'hosts': 'localhost:9200'
+        'hosts': 'http://es:9200'
     }
 }

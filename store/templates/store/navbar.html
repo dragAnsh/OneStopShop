@@ -1,3 +1,26 @@
+<style>
+    /* Custom focus state */
+    .navbar .form-control:focus {
+        box-shadow: none!important;
+        border-color: #dee2e6!important; /* Match default border color */
+    }
+    
+    /* Input group focus state */
+    .navbar .input-group:focus-within {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        border-radius: 50rem; /* Match pill shape */
+        transition: box-shadow 0.15s ease-in-out;
+    }
+    
+    /* Remove double border between input and button */
+    .navbar .input-group > .form-control.border-end-0 {
+        border-right: none;
+    }
+    .navbar .input-group > .btn.border-start-0 {
+        border-left: none;
+    }
+</style>
+
 <!-- Navigation-->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid px-4 px-lg-5">
@@ -43,9 +66,9 @@
             <div class="d-flex flex-grow-1 mx-lg-4">
                 <form class="w-100" action="{% url 'search' %}" method="GET">
                     <div class="input-group">
-                        <input type="text" name="search_text" class="form-control" placeholder="Search For Products..." value="{{search_text}}">
-                        <button type="submit" class="btn btn-dark">
-                            Search
+                        <input type="text" name="search_text" class="form-control rounded-start-pill" placeholder="Search For Products..." value="{{search_text}}">
+                        <button type="submit" class="btn btn-dark rounded-end-pill">
+                            <i class="bi bi-search ms-2 me-2 fs-5"></i>
                         </button>
                     </div>
                 </form>

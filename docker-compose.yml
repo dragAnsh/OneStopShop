@@ -16,6 +16,8 @@ services:
         restart: true
       redis:
         condition: service_started
+      es:
+        condition: service_started
     env_file:
       - .env
 
@@ -72,7 +74,22 @@ services:
       - redis
       - web
       - celery
+    
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch_onestopshop
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.license.self_generated.type=trial
+    ports:
+      - 9200:9200
+    volumes:
+      - elasticsearch_onestopshop:/usr/share/elasticsearch/data
+
 
 volumes:
   postgres_onestopshop:
   redis_onestopshop:
+  elasticsearch_onestopshop:
