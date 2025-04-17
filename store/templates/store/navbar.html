@@ -19,6 +19,19 @@
     .navbar .input-group > .btn.border-start-0 {
         border-left: none;
     }
+
+    #autocomplete-results {
+        top: 118%;
+        left: 0;
+        right: 0;
+        display: block;
+        background: white;
+    }
+
+    #autocomplete-results li:hover {
+        cursor: pointer;
+        background: #9fa3a7e9;
+    }
 </style>
 
 <!-- Navigation-->
@@ -66,10 +79,12 @@
             <div class="d-flex flex-grow-1 mx-lg-4">
                 <form class="w-100" action="{% url 'search' %}" method="GET">
                     <div class="input-group">
-                        <input type="text" name="search_text" class="form-control rounded-start-pill" placeholder="Search For Products..." value="{{search_text}}">
+                        <input type="text" id="search-input" autocomplete="off" name="search_text" class="form-control rounded-start-pill" placeholder="Search For Products..." value="{{search_text}}">
                         <button type="submit" class="btn btn-dark rounded-end-pill">
                             <i class="bi bi-search ms-2 me-2 fs-5"></i>
                         </button>
+                        <br>
+                        <ul id="autocomplete-results" class="list-group position-absolute rounded" style="z-index: 1000;"></ul>
                     </div>
                 </form>
             </div>
@@ -97,3 +112,37 @@
         </div>
     </div>
 </nav>
+
+<script>
+    const input = document.getElementById("search-input");
+    const resultsBox = document.getElementById("autocomplete-results");
+
+    input.addEventListener("input", () => {
+        // get and trim the search text entered
+        const search_text = input.value.trim();
+
+        // if search text is empty then resultbox should be empty as well
+        if (!search_text) {
+            resultsBox.innerHTML = '';
+            return;
+        }
+
+        // else we hit our url and send a query parameter search_text and add results returned by our view as <li> items
+        fetch(`/autocomplete_suggestions?search_text=${encodeURIComponent(search_text)}`)
+            .then(res => res.json())
+            .then(data => {
+                resultsBox.innerHTML = '';
+                data.suggestions.forEach(item => {
+                    const li = document.createElement("li");
+                    li.className = "list-group-item";
+                    const link = document.createElement("a");
+                    link.href = `/search?search_text=${encodeURIComponent(item)}`;
+                    link.textContent = item;
+                    link.className = "d-block px-3 py-2 text-decoration-none text-dark";
+
+                    li.appendChild(link);
+                    resultsBox.appendChild(li);
+                });
+            });
+    });
+</script>

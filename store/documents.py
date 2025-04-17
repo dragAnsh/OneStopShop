@@ -37,10 +37,13 @@ class ProductDocument(Document):
 
     # Give custom mappings to all fields ow ES will use all fields as TextField
     name = fields.TextField(analyzer = ngram_analyzer)
-    
     final_price = fields.FloatField()
     on_sale = fields.BooleanField()
     average_rating = fields.FloatField()
+
+    # Autocomplete stuff
+    name_suggest = fields.CompletionField()
+    category_suggest = fields.CompletionField()
 
     class Index:
         name = 'products' # ES index name
@@ -57,5 +60,20 @@ class ProductDocument(Document):
             'category'
         )
     
+    # Prepare Fields
     def prepare_final_price(self, instance):
         return instance.sale_price if instance.on_sale else instance.price
+    
+    
+    def prepare_name_suggest(self, instance):
+        return {
+            'input': [instance.name],
+            'weight': 5 # higher priority in autocomplete suggestions
+        }
+    
+
+    def prepare_category_suggest(self, instance):
+        return {
+            'input': [instance.category.name],
+            'weight': 3 # lower priority in autocomplete suggestions
+        }

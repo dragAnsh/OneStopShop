@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from store.documents import ProductDocument
 from .models import Product, Category, Profile
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -12,6 +13,45 @@ import json
 from django.db.models import Exists, OuterRef
 from payment.tasks import send_user_registration_email_task
 from .utils import get_rating_stats, search_with_pagination
+from django.http import JsonResponse
+
+
+def autocomplete_suggestions(request):
+    # get the search_text from the request
+    search_text = request.GET.get('search_text', '').strip()
+
+    if not search_text:
+        return JsonResponse({'suggestions': []})
+    
+    search_query = ProductDocument.search().suggest(
+        "product-suggest", # named suggester
+        search_text,
+        completion={
+            "field": "name_suggest",
+            "size": 5
+        }
+    ).suggest(
+        "category-suggest", # named suggester
+        search_text,
+        completion={
+            "field": "category_suggest",
+            "size": 5
+        }
+    )
+
+    # Execute the suggest query
+    response = search_query.execute()
+
+    # Extract results
+    suggestions = []
+
+    for option in response.suggest['product-suggest'][0].options:
+        suggestions.append(option._source.name)
+    
+    for option in response.suggest['category-suggest'][0].options:
+        suggestions.append(option._source.name)
+
+    return JsonResponse({"suggestions": suggestions})
 
 
 def search(request):
